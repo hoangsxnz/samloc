@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r \".tool_input.file_path // .tool_response.filePath\" | { read -r f; case \"$f\" in *.d.ts) exit 0;; *.ts|*.svelte) n=$(wc -l < \"$f\"); if [ \"$n\" -gt 200 ]; then printf \"{\\\"systemMessage\\\":\\\"%s is %s lines; docs/code-standards.md caps source files at 200. Consider splitting.\\\"}\" \"${f##*/}\" \"$n\"; fi;; esac; } 2>/dev/null || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
