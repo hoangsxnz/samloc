@@ -5,7 +5,7 @@ import { armIdleClose, onAlarm, parseState, parseTrick, type RoomHost } from './
 import { RoomStore } from './room-do-store';
 import { buildView } from './room-do-view';
 import { parseClientMsg } from './ws-parse';
-import type { HandResult, ServerMsg } from './ws-types';
+import type { EmojiKey, HandResult, ServerMsg } from './ws-types';
 
 interface Bucket {
   tokens: number;
@@ -14,6 +14,7 @@ interface Bucket {
 
 const RATE_PER_SEC = 10;
 const BURST = 20;
+const EMOJI_COOLDOWN_MS = 1500;
 
 /**
  * One object per room code: seats, settings, the authoritative `RulesState`, the turn alarm and
@@ -25,6 +26,8 @@ export class RoomDO extends DurableObject<Env> implements RoomHost {
   readonly storage: DurableObjectStorage;
   readonly db: D1Database;
   readonly #buckets = new Map<WebSocket, Bucket>();
+  /** In-memory only: hibernation clears it, worst case one extra reaction after a wake-up. */
+  readonly #emojiAt = new Map<string, number>();
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
@@ -129,6 +132,18 @@ export class RoomDO extends DurableObject<Env> implements RoomHost {
     for (const ws of this.ctx.getWebSockets()) {
       for (const event of events) this.send(ws, { type: 'event', event });
     }
+  }
+
+  emojiAllowed(userId: string): boolean {
+    const now = Date.now();
+    const last = this.#emojiAt.get(userId) ?? 0;
+    if (now - last < EMOJI_COOLDOWN_MS) return false;
+    this.#emojiAt.set(userId, now);
+    return true;
+  }
+
+  broadcastEmoji(seat: number, key: EmojiKey): void {
+    for (const ws of this.ctx.getWebSockets()) this.send(ws, { type: 'emoji', seat, key });
   }
 
   snapshotAll(ack: number, origin?: WebSocket): void {

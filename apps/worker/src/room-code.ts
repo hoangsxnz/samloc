@@ -1,9 +1,8 @@
-const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const ALPHABET = '0123456789';
 const CODE_LENGTH = 6;
-// 256 % 32 === 0 is false (256 / 32 = 8 exactly), so no bias-correcting rejection is
-// mathematically required for a 32-symbol alphabet; reject bytes >= 224 anyway to keep the
-// mapping obviously uniform even if the alphabet size ever changes.
-const REJECTION_CEILING = 224;
+// 256 % 10 === 6, so bytes 250-255 would map back onto digits 0-5 and over-represent them.
+// Reject every byte >= 250 so the remaining range (0-249) covers each digit exactly 25 times.
+const REJECTION_CEILING = 250;
 
 export function generateRoomCode(): string {
   const buffer = new Uint8Array(CODE_LENGTH);
@@ -20,6 +19,5 @@ export function generateRoomCode(): string {
 }
 
 export function isRoomCode(value: string): boolean {
-  if (value.length !== CODE_LENGTH) return false;
-  return [...value].every((ch) => ALPHABET.includes(ch));
+  return /^[0-9]{6}$/.test(value);
 }

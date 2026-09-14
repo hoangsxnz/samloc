@@ -1,6 +1,8 @@
 import type { GameEvent } from '@samloc/rules';
+import type { EmojiKey } from './emoji';
 
 export type { GameEvent };
+export type { EmojiKey };
 
 export interface RoomSettings {
   maxPlayers: number;
@@ -14,6 +16,7 @@ export type ClientMsg = { seq: number } & (
   | { type: 'ready'; value: boolean }
   | { type: 'settings'; settings: RoomSettings }
   | { type: 'play'; cards: string[] }
+  | { type: 'emoji'; key: EmojiKey }
 );
 
 /** isHost = lowest-numbered seat with connected === true; the host is never persisted. */
@@ -81,4 +84,6 @@ export interface RoomView {
 export type ServerMsg =
   | { type: 'snapshot'; ack: number; view: RoomView }
   | { type: 'event'; event: GameEvent }
+  /** Ephemeral reaction: broadcast only, never part of `RoomView` and never persisted. */
+  | { type: 'emoji'; seat: number; key: EmojiKey }
   | { type: 'error'; ack: number; msg: string };

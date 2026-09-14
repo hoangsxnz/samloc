@@ -4,6 +4,12 @@ import { comboLabel } from '../../lib/card-view';
 import { room } from '../../lib/room.svelte';
 import { seatsAfter } from '../../lib/table-layout';
 
+export interface Flight {
+  id: number;
+  seat: number;
+  cards: string[];
+}
+
 export interface Tag {
   id: number;
   seat: number;
@@ -14,6 +20,12 @@ export interface Tag {
 const TAG_TTL_MS = 1600;
 const TICK_MS = 250;
 const MAX_TAGS_PER_SEAT = 3;
+/** Slightly longer than the 260ms flight so the layer is never torn down mid-animation. */
+const FLIGHT_TTL_MS = 300;
+
+function prefersReducedMotion(): boolean {
+  return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
 
 function tagFor(event: GameEvent): { seat: number; text: string; tone: Tag['tone'] } | null {
   switch (event.type) {
@@ -38,12 +50,17 @@ function tagFor(event: GameEvent): { seat: number; text: string; tone: Tag['tone
 export class TableLogic {
   selected = $state<string[]>([]);
   tags = $state<Tag[]>([]);
+  flight = $state<Flight | null>(null);
   ariaLive = $state('');
 
   #now = $state(Date.now());
   #tagSeq = 0;
+  #flightSeq = 0;
   #seenEvents = new WeakSet<GameEvent>();
   #tagTimers = new Map<number, ReturnType<typeof setTimeout>>();
+  #lastTrickKey: string | null = null;
+  #flightPrimed = false;
+  #flightTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     $effect(() => {
@@ -60,6 +77,10 @@ export class TableLogic {
     });
 
     $effect(() => {
+      this.#syncFlight(room.view?.trick);
+    });
+
+    $effect(() => {
       if (room.view?.turnDeadline == null) return;
       const timer = setInterval(() => {
         this.#now = Date.now();
@@ -69,6 +90,7 @@ export class TableLogic {
 
     $effect(() => () => {
       for (const timer of this.#tagTimers.values()) clearTimeout(timer);
+      if (this.#flightTimer) clearTimeout(this.#flightTimer);
     });
   }
 
@@ -146,6 +168,31 @@ export class TableLogic {
         this.#tagTimers.delete(id);
       }, TAG_TTL_MS),
     );
+  }
+
+  /**
+   * Starts one flight per newly appended trick entry. The key is compared against the
+   * previous key only, so a reconnect snapshot replaying the same trick does not re-fire.
+   * The first run only records the key: mounting onto a trick that is already on the table
+   * (returning to the route mid-hand) must not replay a play that happened earlier.
+   */
+  #syncFlight(trick: { seat: number; cards: string[] }[] | undefined): void {
+    const last = trick?.[trick.length - 1];
+    const key = last && trick ? `${trick.length}:${last.seat}:${last.cards.join(',')}` : null;
+    if (!this.#flightPrimed) {
+      this.#flightPrimed = true;
+      this.#lastTrickKey = key;
+      return;
+    }
+    if (key === this.#lastTrickKey) return;
+    this.#lastTrickKey = key;
+    if (!last || !key || prefersReducedMotion()) return;
+    if (this.#flightTimer) clearTimeout(this.#flightTimer);
+    this.flight = { id: ++this.#flightSeq, seat: last.seat, cards: [...last.cards] };
+    this.#flightTimer = setTimeout(() => {
+      this.flight = null;
+      this.#flightTimer = null;
+    }, FLIGHT_TTL_MS);
   }
 
   #clearTagTimer(id: number): void {

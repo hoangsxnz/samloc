@@ -19,7 +19,7 @@
 
   function onInput(index: number, event: Event): void {
     const target = event.currentTarget as HTMLInputElement;
-    const raw = target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const raw = target.value.replace(/[^0-9]/g, '');
     if (raw.length > 1) {
       value = raw.slice(0, LENGTH);
       inputs[Math.min(raw.length, LENGTH) - 1]?.focus();
@@ -37,7 +37,7 @@
 
   function onPaste(event: ClipboardEvent): void {
     const text = event.clipboardData?.getData('text') ?? '';
-    const raw = text.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, LENGTH);
+    const raw = text.replace(/[^0-9]/g, '').slice(0, LENGTH);
     if (!raw) return;
     event.preventDefault();
     value = raw;
@@ -51,13 +51,13 @@
       bind:this={inputs[index]}
       class="code-box"
       class:cur={index === value.length}
-      inputmode="text"
+      inputmode="numeric"
+      pattern="[0-9]*"
       maxlength="1"
-      autocapitalize="characters"
       value={char}
       oninput={(e) => onInput(index, e)}
       onkeydown={(e) => onKeydown(index, e)}
-      aria-label={`Ký tự ${index + 1} của mã phòng`}
+      aria-label={`Chữ số ${index + 1} của mã phòng`}
     />
   {/each}
 </div>
@@ -79,7 +79,6 @@
     font-size: 22px;
     font-weight: 700;
     text-align: center;
-    text-transform: uppercase;
     font-family: inherit;
   }
   .code-box:focus {

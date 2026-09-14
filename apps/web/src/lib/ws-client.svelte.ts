@@ -1,4 +1,4 @@
-import type { ClientMsg, GameEvent, RoomView, ServerMsg } from '@samloc/worker/ws-types';
+import type { ClientMsg, EmojiKey, GameEvent, RoomView, ServerMsg } from '@samloc/worker/ws-types';
 
 /** Plain Omit collapses discriminated unions; this distributes over each member instead. */
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
@@ -20,6 +20,7 @@ export class WsClient {
 
   onSnapshot: (view: RoomView) => void = () => {};
   onEvent: (event: GameEvent) => void = () => {};
+  onEmoji: (seat: number, key: EmojiKey) => void = () => {};
   onError: (msg: string, ack: number) => void = () => {};
 
   #socket: WebSocket | null = null;
@@ -70,6 +71,7 @@ export class WsClient {
       const msg = JSON.parse(event.data) as ServerMsg;
       if (msg.type === 'snapshot') this.onSnapshot(msg.view);
       else if (msg.type === 'event') this.onEvent(msg.event);
+      else if (msg.type === 'emoji') this.onEmoji(msg.seat, msg.key);
       else if (msg.type === 'error') this.onError(msg.msg, msg.ack);
     });
 

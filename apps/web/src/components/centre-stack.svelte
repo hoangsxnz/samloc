@@ -63,6 +63,19 @@
       opacity 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
       transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
+  /* Fades in as the flight lands, so the flying copy and the real row never both read as solid. */
+  .trick-row.newest {
+    animation: trick-land 260ms ease-out both;
+  }
+  @keyframes trick-land {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .trick-row.newest {
+      animation: none;
+    }
+  }
   .trick-cards {
     display: flex;
   }

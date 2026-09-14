@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { SeatView } from '@samloc/worker/ws-types';
+  import type { Reaction } from '../lib/room.svelte';
+  import EmojiBubble from './emoji-bubble.svelte';
   import EventTag from './event-tag.svelte';
   import TimerRing from './timer-ring.svelte';
 
@@ -10,9 +12,10 @@
     remain: number;
     turnSeconds: number;
     tags: { id: number; text: string; tone: 'gold' | 'danger' | 'warn' | 'info' }[];
+    reactions: Reaction[];
   }
 
-  let { seat, pos, active, remain, turnSeconds, tags }: Props = $props();
+  let { seat, pos, active, remain, turnSeconds, tags, reactions }: Props = $props();
 
   function initial(name: string): string {
     return name.trim().charAt(0).toUpperCase() || '?';
@@ -26,6 +29,9 @@
 </script>
 
 <div class="opp-seat" style={posStyle} class:passed={seat.passed} class:disconnected={!seat.connected}>
+  <div class="opp-reactions">
+    {#each reactions as reaction (reaction.id)}<EmojiBubble emoji={reaction.key} />{/each}
+  </div>
   <!-- On the active seat the countdown replaces the initial and the arc wraps the avatar. -->
   <div class="opp-avatar-wrap">
     <div class="opp-avatar" class:active class:danger>{active ? Math.ceil(remain) : initial(seat.name)}</div>
@@ -103,7 +109,8 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 15px;
+    /* Tight: the seat column must end above the played-card stack at y 160. */
+    line-height: 13px;
   }
   .opp-count-row {
     display: flex;
@@ -111,13 +118,13 @@
     gap: 4px;
   }
   .opp-cardback {
-    width: 22px;
-    height: 30px;
-    border-radius: 4px;
+    width: 28px;
+    height: 38px;
+    border-radius: 5px;
     background: var(--card-back);
     border: 1.5px solid rgba(255, 255, 255, 0.55);
     color: #fff;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -145,6 +152,14 @@
   .opp-tag.hot {
     background: var(--danger);
     color: #fff;
+  }
+  /* Bubbles rise above the avatar; the event tags occupy the space below it. */
+  .opp-reactions {
+    position: absolute;
+    bottom: 100%;
+    display: flex;
+    gap: 2px;
+    pointer-events: none;
   }
   .opp-tag-queue {
     position: absolute;

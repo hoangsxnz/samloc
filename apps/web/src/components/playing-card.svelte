@@ -87,14 +87,16 @@
     font-size: 18px;
     line-height: 1;
   }
+  /* Anchored to the bottom-right quadrant so its box never meets the top-left
+     rank + suit block; wide glyphs (hearts, diamonds) used to fuse with it. */
   .card-lg .card-suit-centre {
     position: absolute;
     inset: 0;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-    padding-top: 14px;
+    align-items: flex-end;
+    justify-content: flex-end;
+    font-size: 30px;
+    padding: 0 6px 4px 0;
   }
 
   .card-sm {
@@ -120,10 +122,10 @@
     position: absolute;
     inset: 0;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    padding-top: 10px;
+    align-items: flex-end;
+    justify-content: flex-end;
+    font-size: 22px;
+    padding: 0 5px 3px 0;
   }
 
   .card-xs {

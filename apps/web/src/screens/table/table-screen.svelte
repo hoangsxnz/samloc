@@ -1,8 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import ActionBar from '../../components/action-bar.svelte';
+  import CardFlight from '../../components/card-flight.svelte';
   import CentreStack from '../../components/centre-stack.svelte';
   import ConfirmDialog from '../../components/confirm-dialog.svelte';
+  import EmojiBar from '../../components/emoji-bar.svelte';
   import ErrorToast from '../../components/error-toast.svelte';
   import HandFan from '../../components/hand-fan.svelte';
   import MeChip from '../../components/me-chip.svelte';
@@ -11,7 +13,16 @@
   import TableTopBar from '../../components/table-top-bar.svelte';
   import { room } from '../../lib/room.svelte';
   import { go, route } from '../../lib/router.svelte';
-  import { opponentSlots, SLOT_POSITIONS, tableScale, TABLE_HEIGHT, TABLE_WIDTH } from '../../lib/table-layout';
+  import {
+    CENTRE_POINT,
+    FAN_ORIGIN,
+    opponentSlots,
+    slotOrigin,
+    SLOT_POSITIONS,
+    tableScale,
+    TABLE_HEIGHT,
+    TABLE_WIDTH,
+  } from '../../lib/table-layout';
   import HandResultModal from './hand-result-modal.svelte';
   import { TableLogic } from './table-logic.svelte';
 
@@ -53,8 +64,17 @@
   const opponentSeats = $derived.by(() => {
     if (!view) return [];
     return opponentSlots(view.youSeat, view.seats.map((s) => s.seat))
-      .map((o) => ({ seatView: view.seats.find((s) => s.seat === o.seat), pos: SLOT_POSITIONS[o.slot] }))
+      .map((o) => ({ seatView: view.seats.find((s) => s.seat === o.seat), slot: o.slot, pos: SLOT_POSITIONS[o.slot] }))
       .filter((o) => o.seatView !== undefined);
+  });
+
+  /** Where a played combo starts its flight: my fan, or the playing opponent's avatar. */
+  const flightOrigin = $derived.by(() => {
+    const seat = logic.flight?.seat;
+    if (seat === undefined || !view) return CENTRE_POINT;
+    if (seat === view.youSeat) return FAN_ORIGIN;
+    const slot = opponentSeats.find((o) => o.seatView?.seat === seat)?.slot;
+    return slot ? slotOrigin(slot) : CENTRE_POINT;
   });
 </script>
 
@@ -72,11 +92,22 @@
             remain={logic.remain}
             turnSeconds={view.settings.turnSeconds}
             tags={logic.tagsFor(opp.seatView.seat)}
+            reactions={room.reactionsFor(opp.seatView.seat)}
           />
         {/if}
       {/each}
 
       <CentreStack trick={view.trick} seats={view.seats} />
+
+      {#if logic.flight}
+        {#key logic.flight.id}
+          <CardFlight
+            cards={logic.flight.cards}
+            dx={flightOrigin.x - CENTRE_POINT.x}
+            dy={flightOrigin.y - CENTRE_POINT.y}
+          />
+        {/key}
+      {/if}
 
       {#if mySeat}
         <MeChip
@@ -87,8 +118,11 @@
           invalidReason={logic.invalidReason}
           denWarn={logic.denWarn}
           tags={logic.tagsFor(mySeat.seat)}
+          reactions={room.reactionsFor(mySeat.seat)}
         />
       {/if}
+
+      <EmojiBar onpick={(key) => room.sendEmoji(key)} />
 
       <HandFan hand={view.hand} selected={logic.selected} ontoggle={(id) => logic.toggle(id)} />
 

@@ -36,6 +36,7 @@
     bottom: max(20px, env(safe-area-inset-bottom));
     display: flex;
     gap: 10px;
+    z-index: 20;
   }
   .bar-btn {
     width: auto;
@@ -66,5 +67,6 @@
     gap: 6px;
     box-shadow: 0 0 16px rgba(212, 175, 55, 0.45);
     cursor: pointer;
+    z-index: 20;
   }
 </style>

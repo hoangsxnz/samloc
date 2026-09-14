@@ -59,6 +59,12 @@ export function handleMessage(host: RoomHost, ws: WebSocket, who: Who, msg: Clie
     case 'play':
       if (!mine) return fail(host, ws, msg.seq, 'Bạn chưa vào phòng');
       return applyGameAction(host, ws, msg.seq, { type: 'play', seat: mine.seat, cards: msg.cards });
+    case 'emoji':
+      // Reactions are not room state: no snapshot, no store write. A throttled one is
+      // dropped silently — an error toast would be noisier than the reaction itself.
+      if (!mine) return fail(host, ws, msg.seq, 'Bạn chưa vào phòng');
+      if (!host.emojiAllowed(who.userId)) return;
+      return host.broadcastEmoji(mine.seat, msg.key);
   }
 }
 

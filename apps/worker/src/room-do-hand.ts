@@ -1,7 +1,7 @@
 import { applyAction, createHand, settle, type Action, type GameEvent, type RulesState, type StepResult } from '@samloc/rules';
 import type { RoomRow, RoomStore, SeatRow } from './room-do-store';
 import { buildHandResult } from './room-do-view';
-import type { ServerMsg, TrickEntry } from './ws-types';
+import type { EmojiKey, ServerMsg, TrickEntry } from './ws-types';
 
 /** What the hand and action modules need from the Durable Object. */
 export interface RoomHost {
@@ -11,6 +11,9 @@ export interface RoomHost {
   waitUntil(promise: Promise<unknown>): void;
   send(ws: WebSocket, msg: ServerMsg): void;
   broadcastEvents(events: GameEvent[]): void;
+  /** False while the sender is inside the per-seat reaction cooldown. */
+  emojiAllowed(userId: string): boolean;
+  broadcastEmoji(seat: number, key: EmojiKey): void;
   /** Snapshot every socket; `origin` receives `ack`, everyone else 0. */
   snapshotAll(ack: number, origin?: WebSocket): void;
 }

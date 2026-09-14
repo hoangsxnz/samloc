@@ -1,3 +1,4 @@
+import { isEmojiKey } from './emoji';
 import type { ClientMsg } from './ws-types';
 
 const SIMPLE_TYPES = new Set(['join', 'start', 'declareSam', 'pass', 'nextHand', 'leave']);
@@ -33,6 +34,7 @@ export function parseClientMsg(raw: string | ArrayBuffer): ClientMsg | null {
       cards.every((c) => typeof c === 'string' && c.length <= MAX_CARD_ID);
     return valid ? { seq, type, cards: cards as string[] } : null;
   }
+  if (type === 'emoji' && isEmojiKey(data['key'])) return { seq, type, key: data['key'] };
   if (type === 'settings' && isRecord(data['settings'])) {
     const s = data['settings'];
     return {

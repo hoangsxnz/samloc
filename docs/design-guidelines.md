@@ -49,7 +49,7 @@ Card rank glyphs use the same font, weight 700, `font-variant-numeric: tabular-n
 | `--fs-2xl` | 28 / 34 | Score totals, timer digits |
 | `--fs-3xl` | 36 / 40 | Room code, hand result net score |
 
-Room codes: 6 uppercase chars, `letter-spacing: .18em`, weight 700.
+Room codes: 6 digits (0–9), `letter-spacing: .18em`, weight 700, monospace rendering (tabular-nums).
 
 ## 3. Spacing & radius
 
@@ -69,11 +69,11 @@ Screen padding: 16 px vertical, 40 px horizontal (covers the landscape notch; se
 **Playing card** — 56×80 px (ratio 0.71). Radius `--r-card`, `--card-face` bg, 1 px `rgba(0,0,0,.15)` border, shadow `0 2px 6px rgba(0,0,0,.35)`. Rank top-left (22 px/700) with suit glyph beneath (18 px); centre suit 32 px. Red suits `--card-red`, black `--card-black`.
 Small variant (centre stack, result rows): 44×62 px, rank 16 px. Card back: `--card-back` with lattice pattern, 4 px inner white border.
 
-**Own hand fan (10 cards)** — cards absolutely positioned along the bottom edge on a 308 px track (x 262–570); step 28 px (index 0 at 0 px, index 9 at 252 px, total 308 px). Rotation `-10° → +10°` in 2.2° steps; vertical offset follows the arc (outer cards +12 px), base card top at 312 px so the bottom sits near the edge. Selected card: `translateY(-20px)`, gold 2 px outline. Tap toggles selection; no drag. Fewer cards: keep step 28 px, re-centre the track. Hand must never overlap the me-chip (left 40–200 px) or action bar (right 40–266 px: Đánh 120 + Bỏ lượt 96 + gap): track spans 262–570 px.
+**Own hand fan (10 cards)** — cards absolutely positioned along the bottom edge on a 308 px track (x 236–544); step 28 px (index 0 at 0 px, index 9 at 252 px, total 308 px). Rotation `-10° → +10°` in 2.2° steps; vertical offset follows the arc (outer cards +12 px), base card top at 312 px so the bottom sits near the edge. Selected card: `translateY(-20px)`, gold 2 px outline. Tap toggles selection; no drag. Fewer cards: keep step 28 px, re-centre the track. Hand must never overlap the me-chip (left 40–200 px) or action bar (right 40–266 px: Đánh 120 + Bỏ lượt 96 + gap): track spans 236–544 px.
 
-**Seat (opponent)** — 80 px wide column: 40 px round avatar (initial letter, `--surface-2` bg, 2 px `--line` border) + name (12 px/600, max 8 chars + ellipsis). Below the name, one row: 22×30 px card-back (`--card-back`, 1.5 px white border) with the remaining count in white 13 px/700 (turns `--danger` when 1 card left) + session lá total (10 px `--muted`). No avatar badge, no extra label. Active turn: gold avatar border + 48 px timer arc (3 px stroke) wrapped around the avatar, and the remaining seconds replace the initial inside it; under 5 s arc and digits `--danger`, digits pulse. Passed: avatar 50 % opacity + "Bỏ" pill (10 px). Báo 1: pill turns `--danger`. Disconnected: grey ring + "⟳".
+**Seat (opponent)** — 80 px wide column: 40 px round avatar (initial letter, `--surface-2` bg, 2 px `--line` border) + name (12 px/600, max 8 chars + ellipsis). Below the name, one row: 28×38 px card-back (`--card-back`, 1.5 px white border) with the remaining count in white 15 px/700 (turns `--danger` when 1 card left) + session lá total (10 px `--muted`). No avatar badge, no extra label. Active turn: gold avatar border + 48 px timer arc (3 px stroke) wrapped around the avatar, and the remaining seconds replace the initial inside it; under 5 s arc and digits `--danger`, digits pulse. Passed: avatar 50 % opacity + "Bỏ" pill (10 px). Báo 1: pill turns `--danger`. Disconnected: grey ring + "⟳". Emoji reactions appear above the avatar.
 
-**Timer ring** — one component, size-parametric (`size`, `stroke`, `digits` props). Me-chip: 56 px circle, 4 px stroke, digits centred 22 px/700. Opponent: 48 px arc-only variant around the active avatar (digits live inside the avatar). Gold arc drains clockwise from `turnSeconds`; under 5 s stroke `--danger`, digits pulse (see §5).
+**Timer ring** — one component, size-parametric (`size`, `stroke`, `digits` props). Me-chip: 40 px avatar with 48 px ring overlay (3 px stroke, no digits label) and remaining seconds displayed inside the avatar. Opponent: 48 px arc-only variant around the active avatar (digits live inside the avatar). Gold arc drains clockwise from `turnSeconds`; under 5 s stroke `--danger`, digits pulse (see §5).
 
 **Centre stack** — no frame. Each played combo is a row of small cards (20 px overlap) centred on the table; the newest sits on top at full opacity with the player name (11 px `--muted`) beneath; older combos of the trick stay underneath at 30–50 % opacity with a small offset and ±5–7° rotation. Trick end: whole stack fades 350 ms.
 
@@ -84,16 +84,18 @@ Small variant (centre stack, result rows): 44×62 px, rank 16 px. Card back: `--
 - "Báo Sâm!" `--danger` bg / white; "Báo 1" `--warn` bg / `--on-gold`; "Cóng", "Thối 2" shown in result overlay only.
 - Reconnect: full-width top banner 30 px, `--warn` bg, "Mất kết nối, đang kết nối lại…" with spinner; slides down over the top bar, inset by left/right safe areas.
 
+**Emoji reactions** — ephemeral, peer-broadcast-only (not persisted). 8 allowlisted reactions: like, lol, sad, angry, fire, money, think, pray. Picker: 8-icon row triggered by a button (or auto-show); closes on outside pointerdown. Bubbles: emojis rise and fade over 1600 ms above the reacting player's avatar. Per-seat cooldown: 1500 ms. Cap 3 reactions per seat displayed simultaneously.
+
 **Modal / result sheet** — centred modal 640×330 px, radius `--r-lg`, `--surface` bg, scrim `rgba(0,0,0,.6)`. Player rows in a 2-column grid (5 players → 3 rows, inner scroll): avatar, name, net ± for the hand, session total, and the player's remaining cards as mini faces (24×32 px, 7 px overlap). No itemised penalty chips. Footer actions in one row.
 
 ## 5. Motion
 
-Durations: micro 120 ms (press, toggle), standard 200 ms (raise card, event tag in), deal 300 ms per card staggered 40 ms, collect 350 ms. Easing: `cubic-bezier(.2,.8,.2,1)` for enter, `ease-in` for exit.
+Durations: micro 120 ms (press, toggle), standard 200 ms (raise card, event tag in), deal 300 ms per card staggered 40 ms, collect 350 ms, play animation 260 ms. Easing: `cubic-bezier(.2,.8,.2,1)` for enter, `ease-in` for exit.
 - Deal: cards fly from table centre to hand with rotation; total ≤ 700 ms for 10 cards.
-- Play: selected cards translate from hand to centre stack, scale 1 → 0.7; previous combo drops to 30–50 % opacity.
+- Play: fly-to-centre animation (260 ms) — selected cards transform from hand to centre stack. Previous combo drops to 30–50 % opacity. Newest trick fades in over 260 ms to prevent duplicate card flash mid-flight.
 - Trick end: centre stack fades 350 ms.
 - Timer under 5 s: digits `scale(1→1.15)` pulse 500 ms infinite.
-- `@media (prefers-reduced-motion: reduce)`: disable deal/collect motion, keep opacity fades ≤ 100 ms, no pulse.
+- `@media (prefers-reduced-motion: reduce)`: disable deal/play/collect motion, keep opacity fades ≤ 100 ms, no pulse.
 
 ## 6. Landscape lock
 
@@ -104,7 +106,7 @@ Landscape only. `manifest.orientation: "landscape"` handles installed PWA; iOS S
 - `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">`, `user-scalable=no` on the game screen only.
 - Heights use `100dvh`, never `100vh`. Root `height: 100dvh; overflow: hidden` on the table; lobby/login screens scroll inside a content column.
 - Landscape safe areas: the notch sits on the left or right, so `padding-left: max(40px, env(safe-area-inset-left))` and `padding-right: max(40px, env(safe-area-inset-right))` on every screen; `padding-top: max(8px, env(safe-area-inset-top))`, `padding-bottom: max(12px, env(safe-area-inset-bottom))` (home indicator).
-- Table layout is absolute inside 844×390 (design reference): top bar 0–44; top seats at y 48 (x 200 from each edge; 2-player seat top-centre); side seats at y 120 (x 44 from each edge); centre stack 240×100 at y 150–250 (no frame, no toast); me-chip + timer bottom-left (x 40, y 306); hand track 262–570, base top 312; action bar bottom-right (`Đánh` label only, never the combo name). Scale the whole table with `transform: scale()` for 360–430 px tall viewports rather than reflowing.
+- Table layout is absolute inside 844×390 (design reference): top bar 0–44; top seats at y 48 (x 200 from each edge; 2-player seat top-centre); side seats at y 120 (x 44 from each edge); centre stack 240×100 at y 150–250 (no frame, no toast); me-chip + timer bottom-left (x 40, y 306); hand track 236–544, base top 312; action bar bottom-right (`Đánh` label only, never the combo name). Scale the whole table with `transform: scale()` for 360–430 px tall viewports rather than reflowing.
 - Lobby/waiting use 2–3 columns side by side; login is a 2-column hero + form. Lobby header chip shows the money budget `Ngân sách: 10.000` (`vi-VN` thousands separator; 10 000 on register ± settled hands × stake).
 - `touch-action: manipulation` on interactive elements to kill 300 ms delay; `-webkit-tap-highlight-color: transparent`.
 
