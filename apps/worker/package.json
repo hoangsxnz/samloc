@@ -1,0 +1,26 @@
+{
+  "name": "@samloc/worker",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./ws-types": "./src/ws-types.ts"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --config ../web/dist/samloc/wrangler.json",
+    "typecheck": "wrangler types && tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@samloc/rules": "workspace:*",
+    "hono": "^4.13.7"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
+    "@cloudflare/workers-types": "^5.20260914.1",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.0",
+    "wrangler": "^4.131.1"
+  }
+}

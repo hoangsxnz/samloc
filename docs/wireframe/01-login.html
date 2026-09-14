@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wireframe 01 — Đăng nhập · Sâm Lốc Online (landscape)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1a14;--surface:#1b2a21;--surface-2:#24382c;--felt:#1a4d2e;--felt-dark:#123822;--felt-light:#22643c;--gold:#d4af37;--gold-dark:#a8862a;--on-gold:#1a1408;--text:#f4f1e8;--muted:#a8b5ac;--line:rgba(255,255,255,.12);--red:#dc143c;--black:#1a1a1a;--danger:#dc2626}
+*{box-sizing:border-box;margin:0}
+body{background:#0a0d0b;font-family:'Be Vietnam Pro',system-ui,sans-serif;color:var(--text);min-height:100vh;display:flex;flex-direction:column;gap:24px;align-items:center;padding:32px}
+/* Landscape phone frame: inner 844×390, bezel 8px, notch on the left */
+.phone{width:860px;height:406px;border-radius:44px;border:8px solid #2a2a2a;background:var(--bg);overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.6);display:flex}
+.notch{position:absolute;left:0;top:50%;transform:translateY(-50%);width:30px;height:120px;background:#2a2a2a;border-radius:0 18px 18px 0;z-index:5}
+.pin{position:absolute;z-index:6;width:20px;height:20px;border-radius:50%;background:var(--gold);color:var(--on-gold);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0a0d0b}
+.notes{width:860px;font-size:13px;line-height:1.5;color:#c9d1cb;columns:2;column-gap:32px}
+.notes h2{font-size:16px;color:var(--gold);margin-bottom:8px;column-span:all}.notes ol{padding-left:18px}.notes li{margin-bottom:6px;break-inside:avoid}
+/* Screen: 2 columns, safe-area on left/right */
+.screen{flex:1;display:grid;grid-template-columns:1fr 340px;gap:32px;padding:max(8px,env(safe-area-inset-top)) max(40px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(40px,env(safe-area-inset-left))}
+.hero{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:radial-gradient(ellipse 60% 60% at 50% 50%,var(--felt-light),var(--felt) 60%,transparent 100%);border-radius:20px}
+.fan{position:relative;width:150px;height:100px;margin-bottom:12px}
+.card{position:absolute;top:0;left:43px;width:64px;height:90px;background:#fff;border-radius:6px;border:1px solid rgba(0,0,0,.15);box-shadow:0 4px 12px rgba(0,0,0,.45);font-weight:700;color:var(--black);transform-origin:50% 120%}
+.card.red{color:var(--red)}.card span{position:absolute;top:4px;left:6px;font-size:20px;line-height:1}.card em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:30px;padding-top:12px}
+.card:nth-child(1){transform:rotate(-14deg) translateX(-42px)}.card:nth-child(2){transform:translateY(-8px);z-index:1}.card:nth-child(3){transform:rotate(14deg) translateX(42px)}
+h1{font-size:36px;line-height:40px;font-weight:700;color:var(--gold);letter-spacing:.02em}
+.sub{font-size:14px;color:var(--muted);margin-top:4px}
+.foot{position:absolute;bottom:12px;font-size:12px;color:var(--muted)}
+.form{display:flex;flex-direction:column;justify-content:center;position:relative}
+.seg{display:flex;background:var(--surface);border-radius:12px;padding:4px;margin-bottom:12px}
+.seg a{flex:1;text-align:center;height:36px;line-height:36px;border-radius:9px;font-size:14px;font-weight:600;color:var(--muted);text-decoration:none}
+.seg a.on{background:var(--surface-2);color:var(--text)}
+label{display:block;font-size:13px;font-weight:600;margin:0 0 4px 2px}
+.field{display:flex;align-items:center;height:44px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:0 14px;font-size:16px;color:var(--text);margin-bottom:10px}
+.field.focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(212,175,55,.3)}
+.field .ph{color:var(--muted)}.field .eye{margin-left:auto;color:var(--muted);font-size:14px}
+.err{display:flex;align-items:center;gap:8px;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.5);color:#fca5a5;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px}
+.btn{display:flex;align-items:center;justify-content:center;height:48px;border-radius:12px;font-size:16px;font-weight:600;border:0;width:100%;font-family:inherit}
+.btn-p{background:var(--gold);color:var(--on-gold)}
+.btn-g{background:none;color:var(--muted);height:40px;font-weight:400;font-size:14px}.btn-g b{color:var(--gold);font-weight:600}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="hero">
+      <span class="pin" style="top:12px;right:12px">1</span>
+      <div class="fan">
+        <div class="card"><span>A</span><em>♠</em></div>
+        <div class="card red"><span>2</span><em>♥</em></div>
+        <div class="card"><span>K</span><em>♣</em></div>
+      </div>
+      <h1>Sâm Lốc</h1>
+      <p class="sub">Bàn chơi riêng của hội bạn</p>
+      <p class="foot">Ứng dụng nội bộ · chỉ dành cho thành viên được mời</p>
+    </div>
+
+    <div class="form">
+      <div class="seg"><a class="on" href="#">Đăng nhập</a><a href="#">Tạo tài khoản</a><span class="pin" style="top:-10px;right:-8px">2</span></div>
+      <div class="err">⚠ Sai tên đăng nhập hoặc mật khẩu <span class="pin" style="position:static;margin-left:auto">3</span></div>
+      <label for="u">Tên đăng nhập</label>
+      <div class="field focus" id="u">tuan.nguyen</div>
+      <label for="p">Mật khẩu</label>
+      <div class="field" id="p"><span class="ph">••••••••</span><span class="eye">Hiện</span><span class="pin" style="position:static;margin-left:8px">4</span></div>
+      <button class="btn btn-p">Đăng nhập</button>
+      <button class="btn btn-g">Chưa có tài khoản? <b>&nbsp;Tạo tài khoản</b></button>
+    </div>
+  </div>
+</div>
+
+<aside class="notes">
+  <h2>01 · Đăng nhập (ngang 844×390) — ghi chú</h2>
+  <ol>
+    <li><b>Hero trái</b>: nền nỉ xanh bo góc, 3 lá bài xoè bằng CSS, tên app vàng 36px/700. Cột này ẩn khi chiều cao viewport &lt;340px (bàn phím hiện) để form giữ nguyên.</li>
+    <li><b>Toggle</b> "Đăng nhập / Tạo tài khoản": tab tạo tài khoản thêm ô "Tên hiển thị" (1–20 ký tự, có dấu, hiện ở bàn chơi) và "Nhập lại mật khẩu", đổi nhãn nút chính. Tên đăng nhập chỉ chữ thường/số/_ . Không email, không OAuth.</li>
+    <li><b>Lỗi</b> inline trên form (aria-live="polite"), ẩn khi gõ lại. Không alert.</li>
+    <li><b>Input</b> cao 44px, chữ 16px chống iOS auto-zoom; nhãn hiển thị. Ô focus viền vàng. Bàn phím ngang chiếm ~50% chiều cao → form cột phải cuộn trong khi hero cố định.</li>
+    <li>Padding trái/phải = max(40px, safe-area-inset) để tránh tai thỏ khi máy quay 2 chiều. Nếu người dùng cầm dọc: overlay "Xoay ngang máy để chơi" che toàn màn (xem guidelines §6).</li>
+  </ol>
+</aside>
+</body>
+</html>

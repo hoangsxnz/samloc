@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wireframe 02 — Sảnh · Sâm Lốc Online (landscape)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1a14;--surface:#1b2a21;--surface-2:#24382c;--gold:#d4af37;--gold-dark:#a8862a;--on-gold:#1a1408;--text:#f4f1e8;--muted:#a8b5ac;--line:rgba(255,255,255,.12);--danger:#dc2626;--success:#22c55e;--neg:#f87171}
+*{box-sizing:border-box;margin:0}
+body{background:#0a0d0b;font-family:'Be Vietnam Pro',system-ui,sans-serif;color:var(--text);min-height:100vh;display:flex;flex-direction:column;gap:24px;align-items:center;padding:32px}
+.phone{width:860px;height:406px;border-radius:44px;border:8px solid #2a2a2a;background:var(--bg);overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.6);display:flex;flex-direction:column}
+.notch{position:absolute;left:0;top:50%;transform:translateY(-50%);width:30px;height:120px;background:#2a2a2a;border-radius:0 18px 18px 0;z-index:5}
+.pin{position:absolute;z-index:6;width:20px;height:20px;border-radius:50%;background:var(--gold);color:var(--on-gold);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0a0d0b}
+.notes{width:860px;font-size:13px;line-height:1.5;color:#c9d1cb;columns:2;column-gap:32px}
+.notes h2{font-size:16px;color:var(--gold);margin-bottom:8px;column-span:all}.notes ol{padding-left:18px}.notes li{margin-bottom:6px;break-inside:avoid}
+/* Header */
+.top{padding:max(8px,env(safe-area-inset-top)) max(40px,env(safe-area-inset-right)) 6px max(40px,env(safe-area-inset-left));display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);height:56px}
+.av{width:36px;height:36px;border-radius:50%;background:var(--surface-2);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700}
+.top .who{font-size:16px;font-weight:600}.top .who small{font-size:12px;color:var(--muted);font-weight:400;margin-left:8px}
+.chip{margin-left:auto;background:rgba(212,175,55,.15);color:var(--gold);border:1px solid rgba(212,175,55,.4);border-radius:999px;padding:5px 12px;font-size:14px;font-weight:700}
+.ico{width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px;margin-right:-10px}
+/* 3 columns */
+.cols{flex:1;display:grid;grid-template-columns:300px 210px 1fr;gap:16px;padding:10px max(40px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(40px,env(safe-area-inset-left));min-height:0}
+h2{font-size:14px;line-height:18px;font-weight:600;margin-bottom:6px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;position:relative;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.row label{font-size:13px;font-weight:600}
+.seg{display:flex;background:var(--bg);border-radius:8px;padding:3px}
+.seg span{min-width:40px;height:34px;line-height:34px;text-align:center;border-radius:6px;font-size:13px;font-weight:600;color:var(--muted);padding:0 4px}
+.seg span.on{background:var(--gold);color:var(--on-gold)}
+.pen{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pen div{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted);height:34px}
+.pen b{color:var(--text);font-size:15px}
+.btn{display:flex;align-items:center;justify-content:center;height:44px;border-radius:12px;font-size:15px;font-weight:600;border:0;width:100%;font-family:inherit;margin-top:auto}
+.btn-p{background:var(--gold);color:var(--on-gold)}
+.btn-s{background:transparent;border:1.5px solid var(--gold);color:var(--gold)}
+.code{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.code span{height:48px;background:var(--bg);border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;text-transform:uppercase}
+.code span.cur{border-color:var(--gold);box-shadow:0 0 0 2px rgba(212,175,55,.3)}
+.hint{font-size:12px;color:var(--muted);text-align:center}
+.hist{list-style:none;padding:0;overflow-y:auto;min-height:0}
+.hist li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);min-height:48px}
+.hist .d{font-size:11px;color:var(--muted);width:48px;line-height:14px}
+.hist .m{flex:1;font-size:13px;line-height:18px}.hist .m small{display:block;color:var(--muted);font-size:11px}
+.hist .n{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
+.pos{color:var(--success)}.neg{color:var(--neg)}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <header class="top">
+    <div class="av">T</div><div class="who">Tuấn <small>Đã đăng nhập</small></div>
+    <span class="chip">Tổng: +52 lá</span><span class="ico" title="Đăng xuất">⏻</span>
+    <span class="pin" style="top:10px;right:80px">1</span>
+  </header>
+
+  <div class="cols">
+    <section>
+      <h2>Tạo phòng mới</h2>
+      <div class="panel" style="height:calc(100% - 24px)">
+        <span class="pin" style="top:-10px;right:-6px">2</span>
+        <div class="row"><label>Số người</label><div class="seg"><span>2</span><span>3</span><span class="on">4</span><span>5</span></div></div>
+        <div class="row"><label>Thời gian lượt</label><div class="seg"><span>15s</span><span class="on">20s</span><span>30s</span></div></div>
+        <div class="row"><label>Tiền 1 lá</label><div class="seg"><span>50</span><span class="on">100</span><span>200</span><span>500</span></div></div>
+        <p style="font-size:11px;color:var(--muted);margin:0">Thối 2, cóng, chặt 2, báo sâm tính theo luật cố định</p>
+        <button class="btn btn-p">Tạo phòng</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Vào phòng bằng mã</h2>
+      <div class="panel" style="height:calc(100% - 24px)">
+        <span class="pin" style="top:-10px;right:-6px">3</span>
+        <div class="code"><span>K</span><span>7</span><span>M</span><span class="cur"></span><span></span><span></span></div>
+        <p class="hint">Mã 6 ký tự do chủ phòng gửi</p>
+        <button class="btn btn-s">Vào phòng</button>
+      </div>
+    </section>
+
+    <section style="display:flex;flex-direction:column;min-height:0;position:relative">
+      <h2>Ván gần đây</h2><span class="pin" style="top:-4px;right:0">4</span>
+      <ul class="hist">
+        <li><span class="d">Hôm nay<br>21:40</span><span class="m">K7M2QX <small>Tuấn · Minh · Hà · Long · 12 ván</small></span><span class="n pos">+52</span></li>
+        <li><span class="d">12/09<br>22:15</span><span class="m">B3XQ9L <small>Tuấn · Minh · Hà · 8 ván</small></span><span class="n neg">−17</span></li>
+        <li><span class="d">10/09<br>20:05</span><span class="m">P4ZC2V <small>Tuấn · Long · 15 ván</small></span><span class="n pos">+8</span></li>
+        <li><span class="d">07/09<br>21:30</span><span class="m">M9KA1T <small>Tuấn · Minh · Hà · Long · Nam · 10 ván</small></span><span class="n neg">−30</span></li>
+        <li><span class="d">05/09<br>21:00</span><span class="m">Q2WE7R <small>Tuấn · Hà · Long · 9 ván</small></span><span class="n pos">+11</span></li>
+      </ul>
+    </section>
+  </div>
+</div>
+
+<aside class="notes">
+  <h2>02 · Sảnh (ngang 844×390) — ghi chú</h2>
+  <ol>
+    <li><b>Header</b> 56px: avatar, tên, chip tổng điểm luỹ kế (vàng), nút đăng xuất 44×44. Padding ngang = max(40px, safe-area) cả 2 phía vì tai thỏ có thể ở trái hoặc phải.</li>
+    <li><b>Tạo phòng</b>: chỉ 3 cài đặt: số người, thời gian lượt, tiền 1 lá (50/100/200/500). Mức phạt đặc biệt (thối 2, cóng, chặt 2, báo sâm) cố định theo <code>game-rules.md</code>, không hiện. Điểm hiển thị = lá × tiền 1 lá. Segmented 34px cao nhưng vùng chạm mở rộng 44px. Tạo xong → 03, người tạo là chủ phòng.</li>
+    <li><b>Vào phòng chỉ bằng mã 6 ký tự</b> (không có link/URL). Lưới 3×2 để vừa cột hẹp; tự nhảy ô, chữ hoa, dán cả mã 1 lần. Sai mã → lỗi inline "Không tìm thấy phòng".</li>
+    <li><b>Ván gần đây</b> cuộn dọc trong cột, mỗi phiên 1 dòng: mã phòng, người chơi, số ván, điểm ròng tabular-nums (xanh/đỏ nhạt đủ 4.5:1). Bấm dòng → bảng điểm phiên (chỉ đọc). Phiên đang mở có nút "Vào lại".</li>
+    <li>Chỉ một nút vàng trên màn ("Tạo phòng"); "Vào phòng" là secondary để tránh tranh chấp thị giác.</li>
+  </ol>
+</aside>
+</body>
+</html>

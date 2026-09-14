@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Wireframe 04 — Bàn chơi · Sâm Lốc Online (landscape)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1a14;--surface:#1b2a21;--surface-2:#24382c;--felt:#1a4d2e;--felt-dark:#123822;--felt-light:#22643c;--gold:#d4af37;--gold-dark:#a8862a;--on-gold:#1a1408;--text:#f4f1e8;--muted:#a8b5ac;--line:rgba(255,255,255,.12);--red:#dc143c;--black:#1a1a1a;--back:#7a1f2e;--danger:#dc2626;--success:#22c55e}
+*{box-sizing:border-box;margin:0}
+body{background:#0a0d0b;font-family:'Be Vietnam Pro',system-ui,sans-serif;color:var(--text);min-height:100vh;display:flex;flex-direction:column;gap:24px;align-items:center;padding:32px}
+/* Landscape frame: inner 844×390, notch left. All table children are absolutely positioned on the 844×390 design grid. */
+.phone{width:860px;height:406px;border-radius:44px;border:8px solid #2a2a2a;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.6);background:radial-gradient(ellipse 55% 60% at 50% 45%,var(--felt-light),var(--felt) 60%,var(--felt-dark) 100%)}
+.notch{position:absolute;left:0;top:50%;transform:translateY(-50%);width:30px;height:120px;background:#2a2a2a;border-radius:0 18px 18px 0;z-index:5}
+.pin{position:absolute;z-index:9;width:20px;height:20px;border-radius:50%;background:var(--gold);color:var(--on-gold);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0a0d0b}
+.notes{width:860px;font-size:13px;line-height:1.5;color:#c9d1cb;columns:2;column-gap:32px}
+.notes h2{font-size:16px;color:var(--gold);margin-bottom:8px;column-span:all}.notes ol{padding-left:18px}.notes li{margin-bottom:6px;break-inside:avoid}
+/* Top bar */
+.top{position:absolute;top:0;left:max(40px,env(safe-area-inset-left));right:max(40px,env(safe-area-inset-right));height:44px;padding-top:max(8px,env(safe-area-inset-top));display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.top .dot{width:8px;height:8px;border-radius:50%;background:var(--success)}
+.top .code{font-weight:700;letter-spacing:.12em;color:var(--text)}
+.chip{margin-left:auto;background:rgba(212,175,55,.18);color:var(--gold);border:1px solid rgba(212,175,55,.45);border-radius:999px;padding:5px 10px;font-size:14px;font-weight:700}
+.ico{width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--text);font-size:20px;margin-right:-8px}
+/* Seats */
+.seat{position:absolute;width:92px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
+.av{width:48px;height:48px;border-radius:50%;background:var(--surface-2);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;position:relative}
+.seat .n{font-size:14px;font-weight:600;max-width:92px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:18px}
+.pass{opacity:.55}
+.la{font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;background:var(--gold);color:var(--on-gold);line-height:15px}
+.la.one{background:var(--danger);color:#fff}
+.cb{width:26px;height:36px;border-radius:4px;background:var(--card-back);border:1.5px solid rgba(255,255,255,.55);color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.cb.one{border-color:var(--danger);color:#fff;background:var(--danger)}
+.tag{font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;background:rgba(0,0,0,.45);color:var(--muted);line-height:14px}
+.tag.hot{background:var(--danger);color:#fff}
+.stack{display:flex;padding-left:8px;height:26px}
+.stack i{width:18px;height:26px;margin-left:-8px;border-radius:3px;border:1px solid rgba(255,255,255,.55);background-color:var(--back);background-image:repeating-linear-gradient(45deg,transparent 0 3px,rgba(255,255,255,.3) 3px 4px),repeating-linear-gradient(-45deg,transparent 0 3px,rgba(255,255,255,.3) 3px 4px)}
+/* Centre stack */
+.center{position:absolute;top:150px;left:50%;transform:translateX(-50%);width:240px;height:100px}
+.play{position:absolute;left:50%;top:50%;display:flex;transform:translate(-50%,-50%)}
+.play.old1{opacity:.32;transform:translate(-50%,-50%) translate(-34px,-8px) rotate(-7deg)}
+.play.old2{opacity:.5;transform:translate(-50%,-50%) translate(26px,6px) rotate(5deg)}
+.play .card.sm{margin-left:-22px}.play .card.sm:first-child{margin-left:0}
+.play .who{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:4px;font-size:11px;color:var(--muted);white-space:nowrap}
+.row{display:flex;padding-left:20px}
+/* Cards */
+.card{width:56px;height:80px;background:#fff;border-radius:6px;border:1px solid rgba(0,0,0,.15);box-shadow:0 2px 6px rgba(0,0,0,.35);color:var(--black);font-weight:700;position:absolute;font-variant-numeric:tabular-nums}
+.card.red{color:var(--red)}
+.card .r{position:absolute;top:3px;left:5px;font-size:18px;line-height:1}
+.card .s{position:absolute;top:22px;left:6px;font-size:13px;line-height:1}
+.card .c{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px;padding-top:12px}
+.card.sm{position:relative;width:44px;height:62px;border-radius:5px;margin-left:-20px}
+.card.sm .r{font-size:15px;top:3px;left:4px}.card.sm .s{font-size:11px;top:19px;left:5px}.card.sm .c{font-size:20px;padding-top:10px}
+.card.sel{outline:2px solid var(--gold);outline-offset:1px}
+/* Me chip + timer, bottom-left */
+.me{position:absolute;top:306px;left:max(40px,env(safe-area-inset-left));display:flex;align-items:center;gap:10px}
+.me .av{width:40px;height:40px;font-size:16px;border-color:var(--gold);box-shadow:0 0 0 5px rgba(212,175,55,.25)}
+.me .lbl{font-size:14px;font-weight:600;line-height:18px}.me .lbl small{display:block;font-size:12px;color:var(--success);font-weight:600}
+.timer{width:56px;height:56px;border-radius:50%;background:conic-gradient(var(--gold) 0 70%,rgba(255,255,255,.15) 70% 100%);display:flex;align-items:center;justify-content:center}
+.timer b{width:48px;height:48px;border-radius:50%;background:var(--felt-dark);display:flex;align-items:center;justify-content:center;font-size:22px}
+/* Hand: 10 cards along bottom edge, 28px step, −10°→+10°, track 262–570 */
+.hand .card{top:312px}
+/* Action bar bottom-right + Báo Sâm pill */
+.bar{position:absolute;right:max(40px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom));display:flex;gap:10px}
+.btn{display:flex;align-items:center;justify-content:center;height:48px;border-radius:12px;font-size:16px;font-weight:600;border:0;font-family:inherit}
+.btn-p{background:var(--gold);color:var(--on-gold);width:120px}
+.btn-s{background:transparent;border:1.5px solid var(--gold);color:var(--gold);width:96px}
+.sam{position:absolute;right:max(40px,env(safe-area-inset-right));bottom:84px;height:40px;padding:0 18px;border-radius:999px;background:rgba(18,56,34,.9);border:1.5px solid var(--gold);color:var(--gold);font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px;box-shadow:0 0 16px rgba(212,175,55,.45)}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <header class="top"><span class="dot"></span><span class="code">K7M2QX</span><span>· Ván 4</span><span class="chip">+52</span><span class="ico">≡</span><span class="pin" style="top:10px;right:60px">1</span></header>
+
+  <div class="seat" style="top:42px;left:290px"><div class="av">M</div><span class="n">Minh</span><div class="cb">7</div><span class="pin" style="top:-8px;left:-6px">2</span></div>
+  <div class="seat" style="top:42px;right:290px"><div class="av">T</div><span class="n">Tuấn</span><div class="cb">5</div></div>
+  <div class="seat pass" style="top:130px;left:44px"><div class="av">H</div><span class="n">Hà</span><div class="cb">6</div><span class="tag">Bỏ lượt</span></div>
+  <div class="seat" style="top:130px;right:44px"><div class="av">L</div><span class="n">Long</span><div class="cb one">1</div><span class="tag hot">Báo 1</span><span class="pin" style="top:-8px;right:-6px">3</span></div>
+
+  <div class="center"><span class="pin" style="top:-8px;right:-6px">4</span>
+    <div class="play old1"><div class="card sm"><span class="r">3</span><span class="s">♣</span><span class="c">♣</span></div><div class="card sm red"><span class="r">3</span><span class="s">♥</span><span class="c">♥</span></div></div>
+    <div class="play old2"><div class="card sm"><span class="r">5</span><span class="s">♠</span><span class="c">♠</span></div><div class="card sm red"><span class="r">5</span><span class="s">♦</span><span class="c">♦</span></div></div>
+    <div class="play"><div class="card sm"><span class="r">7</span><span class="s">♠</span><span class="c">♠</span></div><div class="card sm red"><span class="r">7</span><span class="s">♦</span><span class="c">♦</span></div><span class="who">Tuấn</span></div>
+  </div>
+
+  <div class="me"><div class="av">B</div><div class="lbl">Lượt của bạn<small>Đôi 9 hợp lệ ✓</small></div><div class="timer"><b>14</b></div><span class="pin" style="top:-10px;left:-8px">6</span></div>
+
+  <div class="hand"><span class="pin" style="top:276px;left:244px">7</span>
+    <div class="card" style="left:262px;transform:rotate(-10deg) translateY(12px);z-index:1"><span class="r">3</span><span class="s">♠</span><span class="c">♠</span></div>
+    <div class="card red" style="left:290px;transform:rotate(-7.8deg) translateY(7px);z-index:2"><span class="r">4</span><span class="s">♦</span><span class="c">♦</span></div>
+    <div class="card" style="left:318px;transform:rotate(-5.6deg) translateY(4px);z-index:3"><span class="r">7</span><span class="s">♣</span><span class="c">♣</span></div>
+    <div class="card red" style="left:346px;transform:rotate(-3.3deg) translateY(1px);z-index:4"><span class="r">8</span><span class="s">♥</span><span class="c">♥</span></div>
+    <div class="card sel" style="left:374px;transform:rotate(-1.1deg) translateY(-20px);z-index:5"><span class="r">9</span><span class="s">♣</span><span class="c">♣</span></div>
+    <div class="card red sel" style="left:402px;transform:rotate(1.1deg) translateY(-20px);z-index:6"><span class="r">9</span><span class="s">♥</span><span class="c">♥</span></div>
+    <div class="card" style="left:430px;transform:rotate(3.3deg) translateY(1px);z-index:7"><span class="r">J</span><span class="s">♠</span><span class="c">♠</span></div>
+    <div class="card red" style="left:458px;transform:rotate(5.6deg) translateY(4px);z-index:8"><span class="r">Q</span><span class="s">♦</span><span class="c">♦</span></div>
+    <div class="card" style="left:486px;transform:rotate(7.8deg) translateY(7px);z-index:9"><span class="r">K</span><span class="s">♣</span><span class="c">♣</span></div>
+    <div class="card" style="left:514px;transform:rotate(10deg) translateY(12px);z-index:10"><span class="r">2</span><span class="s">♠</span><span class="c">♠</span></div>
+  </div>
+
+  <div class="bar"><button class="btn btn-s">Bỏ lượt</button><button class="btn btn-p">Đánh</button><span class="pin" style="top:-10px;right:-8px">9</span></div>
+</div>
+
+<aside class="notes">
+  <h2>04 · Bàn chơi (ngang 844×390) — ghi chú</h2>
+  <ol>
+    <li><b>Thanh trên</b> (trái/phải cách mép max(40px, safe-area) vì tai thỏ có thể ở 2 phía): chấm xanh = kết nối; rớt socket → chấm cam + banner 36px "Mất kết nối, đang kết nối lại…" trượt xuống đè thanh trên. Mã phòng, số ván, chip điểm phiên, menu.</li>
+    <li><b>Ghế đối thủ</b>: 2 ghế cạnh trên (x 290 từ mỗi mép), 1 ghế mỗi bên (y 130). Số lá còn lại: 1 lá úp 26×36 dưới tên, số ghi trên lá (đỏ khi còn 1). Không badge, không nhãn phụ. 3 người → bỏ ghế bên; 2 người → chỉ 1 ghế trên-giữa. "Bỏ lượt" mờ 55% + tag. Đến lượt ai thì ghế đó có vòng vàng 3px + glow (ở đây là lượt mình → vòng ở chip "B" góc dưới trái).</li>
+    <li><b>Báo 1</b>: server tự báo; lá úp đỏ "1" + tag đỏ "Báo 1" dưới ghế. Người ngay trước Long, khi chọn 1 lá không phải lá to nhất, thấy cảnh báo "Có thể phải đền bài".</li>
+    <li><b>Bài giữa</b> không khung: combo mới đè lên combo cũ (thẻ 44×62), combo cũ mờ 30–50% + lệch/xoay nhẹ, tên người đánh 11px dưới combo mới. Hết vòng → dọn sạch (mờ 350ms).</li>
+    <li><b>Sự kiện</b> không toast giữa màn: tag nhỏ dưới ghế người liên quan 1.6s ("Chặt 2 +15", "Báo Sâm", "Báo 1"), mirror aria-live.</li>
+    <li><b>Chip mình + timer</b> góc dưới trái: vòng 56px cạn theo chiều kim đồng hồ từ 20s; &lt;5s chuyển đỏ + số nhấp nháy. Dòng phụ báo combo đang chọn hợp lệ hay không ("Không chặt được Đôi 7").</li>
+    <li><b>Tay bài</b>: 10 lá 56×80 dọc cạnh dưới, bước 28px, xoay −10°→+10°, track 262–570 (chip+timer chiếm 40–250, nút chiếm 578–804). Lá chọn nhô 20px + viền vàng. Chạm để chọn, không kéo; vùng chạm mở rộng 44px.</li>
+    <li><b>Báo Sâm</b>: KHÔNG có trong mockup này vì đang giữa ván. Nút chỉ hiện ở cửa sổ đầu ván (sau chia bài, trước lá đầu tiên, sau kiểm tra ăn trắng) tại vị trí trên nút "Đánh"; ai đánh lá đầu → nút ẩn với tất cả. Bấm → xác nhận "Báo Sâm? Thua đền 20 lá/người".</li>
+    <li><b>Nút hành động</b> góc dưới phải (cách mép max(40px, safe-area-right), đáy max(20px, safe-area-bottom)): "Đánh" 120px disabled 40% khi combo không hợp lệ, nhãn đổi "Đánh (Đôi 9)"; "Bỏ lượt" 96px ẩn khi mình cầm cái.</li>
+  </ol>
+</aside>
+</body>
+</html>

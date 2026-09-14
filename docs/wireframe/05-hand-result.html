@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wireframe 05 — Kết quả ván · Sâm Lốc Online (landscape)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1a14;--surface:#1b2a21;--surface-2:#24382c;--felt:#1a4d2e;--felt-dark:#123822;--felt-light:#22643c;--gold:#d4af37;--gold-dark:#a8862a;--on-gold:#1a1408;--text:#f4f1e8;--muted:#a8b5ac;--line:rgba(255,255,255,.12);--danger:#dc2626;--success:#22c55e;--neg:#f87171}
+*{box-sizing:border-box;margin:0}
+body{background:#0a0d0b;font-family:'Be Vietnam Pro',system-ui,sans-serif;color:var(--text);min-height:100vh;display:flex;flex-direction:column;gap:24px;align-items:center;padding:32px}
+.phone{width:860px;height:406px;border-radius:44px;border:8px solid #2a2a2a;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.6);background:radial-gradient(ellipse 55% 60% at 50% 45%,var(--felt-light),var(--felt) 60%,var(--felt-dark) 100%)}
+.notch{position:absolute;left:0;top:50%;transform:translateY(-50%);width:30px;height:120px;background:#2a2a2a;border-radius:0 18px 18px 0;z-index:5}
+.pin{position:absolute;z-index:9;width:20px;height:20px;border-radius:50%;background:var(--gold);color:var(--on-gold);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0a0d0b}
+.notes{width:860px;font-size:13px;line-height:1.5;color:#c9d1cb;columns:2;column-gap:32px}
+.notes h2{font-size:16px;color:var(--gold);margin-bottom:8px;column-span:all}.notes ol{padding-left:18px}.notes li{margin-bottom:6px;break-inside:avoid}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+.ghost{position:absolute;top:14px;left:0;right:0;text-align:center;font-size:12px;color:rgba(255,255,255,.45)}
+/* Centred modal 640×330 */
+.modal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:640px;height:330px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+.hd{display:flex;align-items:baseline;gap:12px;position:relative}
+.hd h1{font-size:20px;line-height:24px;font-weight:700}.hd small{font-size:12px;color:var(--muted)}
+.win{margin-left:auto;display:flex;align-items:center;gap:8px;background:rgba(212,175,55,.14);border:1px solid rgba(212,175,55,.45);border-radius:999px;padding:3px 12px 3px 4px;position:relative}
+.win .av{width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--on-gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.win b{font-size:14px;color:var(--gold)}.win .net{font-size:18px;font-weight:700;color:var(--success);font-variant-numeric:tabular-nums}
+/* Player rows: 2 columns */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;min-height:0;overflow-y:auto}
+.p{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:grid;grid-template-columns:32px 1fr auto;gap:2px 8px;align-items:center;position:relative;height:84px}
+.p .av{width:32px;height:32px;border-radius:50%;background:var(--surface-2);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;grid-row:span 2}
+.p.w .av{border-color:var(--gold)}
+.p .nm{font-size:15px;font-weight:600;line-height:20px}.p .nm i{font-style:normal;font-size:11px;color:var(--muted);font-weight:400;margin-left:6px}
+.p .net{font-size:20px;line-height:24px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.p .tot{font-size:11px;color:var(--muted);text-align:right;white-space:nowrap}
+.left{display:flex;align-items:center;height:32px}
+.mc{width:24px;height:32px;border-radius:3px;background:#fff;color:#1a1a1a;font-size:11px;font-weight:700;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid rgba(0,0,0,.2);margin-left:-7px;box-shadow:0 1px 2px rgba(0,0,0,.35)}
+.mc:first-child{margin-left:0}.mc.red{color:#dc143c}
+.left i{font-style:normal;font-size:11px;color:var(--muted)}
+.pos{color:var(--success)}.neg{color:var(--neg)}
+.foot{display:flex;align-items:center;gap:12px;position:relative}
+.foot p{font-size:12px;color:var(--muted);flex:1}
+.btn{display:flex;align-items:center;justify-content:center;height:44px;border-radius:12px;font-size:15px;font-weight:600;border:0;font-family:inherit;padding:0 20px}
+.btn-p{background:var(--gold);color:var(--on-gold);min-width:160px}
+.btn-g{background:none;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="ghost">(bàn chơi mờ phía sau)</div>
+  <div class="scrim"></div>
+
+  <section class="modal" role="dialog" aria-labelledby="t">
+    <div class="hd"><h1 id="t">Kết quả ván 4</h1><small>Phòng K7M2QX · 21:52</small><span class="pin" style="top:-20px;left:0">1</span>
+      <div class="win"><span class="av">T</span><b>♛ Tuấn thắng</b><span class="net">+32</span><span class="pin" style="top:-12px;right:-8px">2</span></div></div>
+
+    <div class="grid">
+      <div class="p w"><div class="av">T</div><div class="nm">Tuấn <i>0 lá</i></div><div class="net pos">+32</div>
+        <div class="left"><i>Hết bài</i></div><div class="tot">Tổng phiên <b class="pos">+52</b></div></div>
+      <div class="p"><span class="pin" style="top:-8px;right:-6px">3</span><div class="av">M</div><div class="nm">Minh <i>3 lá</i></div><div class="net pos">+7</div>
+        <div class="left"><div class="mc">J<span>♠</span></div><div class="mc red">K<span>♥</span></div><div class="mc">2<span>♣</span></div></div><div class="tot">Tổng phiên <b class="neg">−3</b></div></div>
+      <div class="p"><div class="av">H</div><div class="nm">Hà <i>4 lá</i></div><div class="net neg">−19</div>
+        <div class="left"><div class="mc red">4<span>♦</span></div><div class="mc">9<span>♣</span></div><div class="mc">Q<span>♠</span></div><div class="mc red">A<span>♥</span></div></div><div class="tot">Tổng phiên <b class="neg">−21</b></div></div>
+      <div class="p"><span class="pin" style="top:-8px;right:-6px">4</span><div class="av">L</div><div class="nm">Long <i>Cóng</i></div><div class="net neg">−20</div>
+        <div class="left"><div class="mc">3<span>♠</span></div><div class="mc red">4<span>♥</span></div><div class="mc red">6<span>♦</span></div><div class="mc">7<span>♣</span></div><div class="mc">8<span>♠</span></div><div class="mc red">10<span>♥</span></div><div class="mc red">J<span>♦</span></div><div class="mc">Q<span>♣</span></div><div class="mc">K<span>♠</span></div><div class="mc red">2<span>♦</span></div></div><div class="tot">Tổng phiên <b class="neg">−28</b></div></div>
+    </div>
+
+    <div class="foot"><span class="pin" style="top:-6px;right:-8px">5</span>
+      <button class="btn btn-g">Xem bảng điểm phiên</button>
+      <p style="text-align:right">Tuấn cầm cái ván sau</p>
+      <button class="btn btn-p">Ván tiếp</button>
+    </div>
+  </section>
+</div>
+
+<aside class="notes">
+  <h2>05 · Kết quả ván (ngang 844×390) — ghi chú</h2>
+  <ol>
+    <li><b>Modal giữa màn</b> 640×330, scrim 60%, xuất hiện 350ms sau animation thu bài (scale .95→1 + fade). Không đóng bằng chạm ra ngoài đối với chủ phòng; người khác chạm scrim để xem lại bàn, modal thu thành chip "Kết quả" góc trên.</li>
+    <li><b>Người thắng</b> tóm tắt trong pill vàng ở tiêu đề. Báo Sâm / Ăn trắng: tiêu đề đổi thành "Tuấn Báo Sâm thành công" hoặc "Ăn trắng: Sảnh rồng"; các hàng vẫn chỉ hiện lá còn lại + số ròng.</li>
+    <li><b>Lưới 2 cột</b>: 4 người = 2×2; 5 người = 3 hàng, cuộn trong. Mỗi người thua hiện các lá còn lại (thẻ mini 24×32, chồng 7px) — KHÔNG hiện chi tiết thưởng/phạt; chỉ số ròng ván + tổng phiên. Người thắng: "Hết bài".</li>
+    <li><b>Cóng</b>: chỉ ghi nhãn "Cóng" cạnh tên, vẫn hiện 10 lá còn lại; số ròng đã tính theo luật.</li>
+    <li><b>Footer</b> 1 hàng: trái "Xem bảng điểm phiên" (ghost, mở bảng luỹ kế theo ván), phải "Ván tiếp" (chỉ chủ phòng; người khác thấy "Đang chờ chủ phòng bắt đầu ván mới…"). Chữ giữa nhắc ai cầm cái ván sau.</li>
+  </ol>
+</aside>
+</body>
+</html>

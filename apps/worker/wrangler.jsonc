@@ -1,0 +1,23 @@
+{
+  // Source-consumption path: @samloc/rules is imported as TypeScript source through the workspace link.
+  // `vite dev` (@cloudflare/vite-plugin) and `vite build` both resolve it directly; no dist fallback needed.
+  // Deploy: `pnpm build` emits ../web/dist/samloc/wrangler.json and `pnpm --filter @samloc/worker deploy` uses it.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "samloc",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "../web/dist/client",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/ws/*"]
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "ROOM", "class_name": "RoomDO" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["RoomDO"] }],
+  "d1_databases": [
+    { "binding": "DB", "database_name": "samloc-db", "database_id": "6f755391-a186-470a-b26a-b0900d2f4ca5" }
+  ],
+  "observability": { "enabled": true }
+}
