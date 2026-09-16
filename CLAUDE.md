@@ -70,4 +70,14 @@ There is no ESLint/Prettier/Biome in this repo — conventions are enforced by r
 
 ## Git
 
-Solo repo, no remote. Commit directly to `main` using conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`), scoped like `feat(web,worker): ...`.
+Solo repo. Commit directly to `main` using conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`), scoped like `feat(web,worker): ...`.
+
+Remote is `https://github.com/hoangsxnz/samloc` (public), owned by the `hoangsxnz` GitHub account. The default active `gh` account on this machine is `sonth1-hblab`. Switch to `hoangsxnz` only for the push itself, then switch straight back:
+
+```
+gh auth switch --user hoangsxnz
+git push
+gh auth switch --user sonth1-hblab
+```
+
+Never leave `hoangsxnz` as the active account after a push.
