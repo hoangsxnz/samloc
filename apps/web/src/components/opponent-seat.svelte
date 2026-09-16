@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { SeatView } from '@samloc/worker/ws-types';
+  import { formatMoney } from '../lib/format-money';
   import type { Reaction } from '../lib/room.svelte';
   import EmojiBubble from './emoji-bubble.svelte';
   import EventTag from './event-tag.svelte';
@@ -42,7 +43,7 @@
   <span class="opp-name">{displayName}</span>
   <div class="opp-count-row">
     <div class="opp-cardback" class:one={seat.cardCount === 1}>{seat.cardCount}</div>
-    <span class="opp-total">{seat.totalLa >= 0 ? '+' : ''}{seat.totalLa}</span>
+    <span class="opp-money">{formatMoney(seat.money)}</span>
   </div>
   {#if !seat.connected}
     <span class="opp-tag">⟳</span>
@@ -135,7 +136,7 @@
     border-color: var(--danger);
     background: var(--danger);
   }
-  .opp-total {
+  .opp-money {
     font-size: 10px;
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;

@@ -7,6 +7,8 @@ import type { ClientMsg, RoomSettings } from './ws-types';
 export interface Who {
   userId: string;
   name: string;
+  /** D1 money balance at socket-upgrade time. Absent on a socket accepted before this shipped. */
+  budget?: number;
 }
 
 const MIN_PLAYERS = 2;
@@ -80,9 +82,9 @@ function handleJoin(
   if (mine) {
     host.store.setSeat(mine.seat, { connected: 1, display_name: who.name });
   } else {
-    if (room.status === 'playing') return fail(host, ws, seq, 'Ván đang diễn ra, hãy chờ ván sau');
+    // A player may join while a hand is running: they spectate it and are dealt in on the next one.
     if (seats.length >= room.max_players) return fail(host, ws, seq, 'Phòng đã đầy');
-    host.store.addSeat(who.userId, who.name);
+    host.store.addSeat(who.userId, who.name, who.budget ?? 0);
   }
   host.snapshotAll(seq, ws);
 }

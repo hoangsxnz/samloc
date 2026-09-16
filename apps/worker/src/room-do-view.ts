@@ -48,6 +48,7 @@ export function buildView(
       passed: player?.passed ?? false,
       bao1: state?.bao1Seats.includes(s.seat) ?? false,
       totalLa: s.total_la,
+      money: s.budget_base + s.total_la * room.stake_per_la,
     };
   });
   const ownHand = youSeat >= 0 ? (state?.players[youSeat]?.hand ?? []) : [];
@@ -67,6 +68,9 @@ export function buildView(
     seats: seatViews,
     hand: [...ownHand],
     trick: trick.map((t) => ({ seat: t.seat, cards: [...t.cards] })),
+    // The cards of a trick everybody passed on stay visible, so the entries alone cannot tell the
+    // client whether there is still something to beat. Only the rules state knows.
+    trickClosed: state === null || state.trick.combo === null,
     phase: state?.phase ?? null,
     turnSeat: state && state.phase !== 'ended' ? state.turnSeat : null,
     samSeat: state?.samSeat ?? null,
@@ -98,22 +102,29 @@ function headline(state: RulesState, seats: readonly SeatRow[], kind: HandResult
   }
 }
 
-/** `totals` are the post-settlement session totals per seat. */
+/** `totals` are the post-settlement session totals per seat; `stake` converts lá to đồng. */
 export function buildHandResult(
   state: RulesState,
   seats: readonly SeatRow[],
   deltas: readonly number[],
   totals: readonly number[],
+  stake: number,
 ): HandResult {
   const kind = resultKind(state);
-  const rows: ResultRow[] = state.players.map((p) => ({
-    seat: p.seat,
-    name: seatName(seats, p.seat),
-    cards: [...p.hand],
-    cong: p.played === 0 && p.seat !== state.winnerSeat && kind === 'normal',
-    deltaLa: deltas[p.seat] ?? 0,
-    totalLa: totals[p.seat] ?? 0,
-  }));
+  const rows: ResultRow[] = state.players.map((p) => {
+    const total = totals[p.seat] ?? 0;
+    const base = seats.find((s) => s.seat === p.seat)?.budget_base ?? 0;
+    return {
+      seat: p.seat,
+      name: seatName(seats, p.seat),
+      cards: [...p.hand],
+      cong: p.played === 0 && p.seat !== state.winnerSeat && kind === 'normal',
+      deltaLa: deltas[p.seat] ?? 0,
+      totalLa: total,
+      deltaMoney: (deltas[p.seat] ?? 0) * stake,
+      moneyAfter: base + total * stake,
+    };
+  });
   return {
     handNo: state.handNo,
     winnerSeat: state.winnerSeat,

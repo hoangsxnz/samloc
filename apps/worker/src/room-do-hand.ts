@@ -1,7 +1,8 @@
-import { applyAction, createHand, settle, type Action, type GameEvent, type RulesState, type StepResult } from '@samloc/rules';
+import { applyAction, createHand, settle, thoi2Counts, type Action, type GameEvent, type RulesState, type StepResult } from '@samloc/rules';
 import type { RoomRow, RoomStore, SeatRow } from './room-do-store';
+import { EMPTY_TRICK, nextTrick, parseTrick } from './room-do-trick';
 import { buildHandResult } from './room-do-view';
-import type { EmojiKey, ServerMsg, TrickEntry } from './ws-types';
+import type { EmojiKey, ServerMsg } from './ws-types';
 
 /** What the hand and action modules need from the Durable Object. */
 export interface RoomHost {
@@ -20,10 +21,6 @@ export interface RoomHost {
 
 export function parseState(room: RoomRow): RulesState | null {
   return room.state_json ? (JSON.parse(room.state_json) as RulesState) : null;
-}
-
-export function parseTrick(room: RoomRow): TrickEntry[] {
-  return room.trick_json ? (JSON.parse(room.trick_json) as TrickEntry[]) : [];
 }
 
 function armAlarm(host: RoomHost, turnSeconds: number): void {
@@ -46,7 +43,7 @@ export function beginHand(host: RoomHost, ack: number, origin?: WebSocket): void
     status: 'playing',
     state_json: JSON.stringify(state),
     result_json: null,
-    trick_json: '[]',
+    trick_json: JSON.stringify(EMPTY_TRICK),
   });
   host.store.resetReady();
   host.broadcastEvents(events);
@@ -74,14 +71,6 @@ export function applyGameAction(host: RoomHost, ws: WebSocket, seq: number, acti
   commitStep(host, room, res, seq, ws);
 }
 
-function nextTrick(prev: TrickEntry[], state: RulesState, events: GameEvent[]): TrickEntry[] {
-  if (events.some((e) => e.type === 'trickEnd')) return [];
-  if (state.trick.combo === null) return prev;
-  const last = prev[prev.length - 1];
-  const same = last !== undefined && last.seat === state.trick.ownerSeat && last.cards.join() === state.trick.cards.join();
-  return same ? prev : [...prev, { seat: state.trick.ownerSeat, cards: [...state.trick.cards] }];
-}
-
 function commitStep(host: RoomHost, room: RoomRow, res: StepResult, ack: number, origin?: WebSocket): void {
   const trick = nextTrick(parseTrick(room), res.state, res.events);
   host.store.patchRoom({ state_json: JSON.stringify(res.state), trick_json: JSON.stringify(trick) });
@@ -97,10 +86,15 @@ function commitStep(host: RoomHost, room: RoomRow, res: StepResult, ack: number,
 /** Settles, updates session totals, records history in D1 (best effort) and parks the room at hand-end. */
 export function endHand(host: RoomHost, state: RulesState): void {
   const seats = host.store.listSeats();
+  const roomBefore = host.store.getRoom();
+  const stake = roomBefore?.stake_per_la ?? 0;
+  host.broadcastEvents(
+    thoi2Counts(state).map((t) => ({ type: 'thoi2' as const, seat: t.seat, count: t.count, amount: t.amount })),
+  );
   const deltas = settle(state);
   host.store.addTotals(deltas);
   const totals = host.store.listSeats().map((s) => s.total_la);
-  const result = buildHandResult(state, seats, deltas, totals);
+  const result = buildHandResult(state, seats, deltas, totals, stake);
   const nextLead = seats.find((s) => s.seat === result.nextLeadSeat)?.user_id ?? null;
   host.store.patchRoom({
     status: 'hand-end',

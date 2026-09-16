@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { formatMoney } from '../lib/format-money';
   import type { Reaction } from '../lib/room.svelte';
   import EmojiBubble from './emoji-bubble.svelte';
   import EventTag from './event-tag.svelte';
@@ -6,6 +7,7 @@
 
   interface Props {
     name: string;
+    money: number;
     isMyTurn: boolean;
     remain: number;
     turnSeconds: number;
@@ -15,7 +17,7 @@
     reactions: Reaction[];
   }
 
-  let { name, isMyTurn, remain, turnSeconds, invalidReason, denWarn, tags, reactions }: Props = $props();
+  let { name, money, isMyTurn, remain, turnSeconds, invalidReason, denWarn, tags, reactions }: Props = $props();
 
   function initial(value: string): string {
     return value.trim().charAt(0).toUpperCase() || '?';
@@ -41,7 +43,11 @@
   </div>
   <div class="me-label">
     {isMyTurn ? 'Lượt của bạn' : 'Chờ lượt'}
-    {#if subLine}<small class:warn={!!invalidReason || denWarn}>{subLine}</small>{/if}
+    {#if subLine}
+      <small class:warn={!!invalidReason || denWarn}>{subLine}</small>
+    {:else}
+      <small class="me-money">{formatMoney(money)}</small>
+    {/if}
   </div>
   <div class="me-tag-queue">
     {#each tags as tag (tag.id)}<EventTag text={tag.text} tone={tag.tone} />{/each}
@@ -56,7 +62,8 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    z-index: 20;
+    /* Above the emoji bar (z 20), which sits directly overhead and is painted after this chip. */
+    z-index: 30;
   }
   .me-avatar-wrap {
     position: relative;
@@ -102,11 +109,17 @@
   .me-label small.warn {
     color: var(--danger);
   }
-  /* Bubbles rise above the avatar; the event tags occupy the space below it. */
+  .me-label small.me-money {
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  /* Bubbles rise beside the chip, not above it: the emoji bar sits directly overhead and would
+     otherwise paint over them. The event tags still occupy the space below the avatar. */
   .me-reactions {
     position: absolute;
-    bottom: 100%;
-    left: 0;
+    bottom: 0;
+    left: 100%;
+    margin-left: 8px;
     display: flex;
     gap: 2px;
     pointer-events: none;

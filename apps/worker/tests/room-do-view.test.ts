@@ -1,4 +1,4 @@
-import { buildHand, settle } from '@samloc/rules';
+import { applyAction, buildHand, settle } from '@samloc/rules';
 import type { RoomRow, SeatRow } from '../src/room-do-store';
 import { buildHandResult, buildView, hostSeat } from '../src/room-do-view';
 
@@ -17,9 +17,9 @@ const room: RoomRow = {
 };
 
 const seats: SeatRow[] = [
-  { seat: 0, user_id: 'u0', display_name: 'An', ready: 0, connected: 0, total_la: 5 },
-  { seat: 1, user_id: 'u1', display_name: 'Bình', ready: 0, connected: 1, total_la: -5 },
-  { seat: 2, user_id: 'u2', display_name: 'Chi', ready: 0, connected: 1, total_la: 0 },
+  { seat: 0, user_id: 'u0', display_name: 'An', ready: 0, connected: 0, total_la: 5, budget_base: 10_000 },
+  { seat: 1, user_id: 'u1', display_name: 'Bình', ready: 0, connected: 1, total_la: -5, budget_base: 9_000 },
+  { seat: 2, user_id: 'u2', display_name: 'Chi', ready: 0, connected: 1, total_la: 0, budget_base: 12_000 },
 ];
 
 const hands = [
@@ -65,6 +65,29 @@ describe('buildView', () => {
     expect(view.turnDeadline).toBe(1_000);
   });
 
+  it('marks the trick closed while its cards are still on the table', () => {
+    const led = applyAction(state, { type: 'play', seat: 0, cards: ['3S'] }).state;
+    const trick = [{ seat: 0, cards: ['3S'] }];
+    expect(buildView(room, seats, led, null, trick, 'u1').trickClosed).toBe(false);
+    const passed = applyAction(applyAction(led, { type: 'pass', seat: 1 }).state, { type: 'pass', seat: 2 }).state;
+    const closed = buildView(room, seats, passed, null, trick, 'u1');
+    expect(closed.trick).toEqual(trick);
+    expect(closed.trickClosed).toBe(true);
+  });
+
+  it('shows money as the seat budget plus session lá at the room stake', () => {
+    expect(view.seats.map((s) => s.money)).toEqual([10_500, 8_500, 12_000]);
+  });
+
+  it('renders a seat that joined mid-hand with no cards', () => {
+    const late: SeatRow = { seat: 3, user_id: 'u3', display_name: 'Dũng', ready: 1, connected: 1, total_la: 0, budget_base: 10_000 };
+    const withLate = buildView(room, [...seats, late], state, null, [], 'u3');
+    expect(withLate.youSeat).toBe(3);
+    expect(withLate.hand).toEqual([]);
+    expect(withLate.seats[3]?.cardCount).toBe(0);
+    expect(withLate.canDeclareSam).toBe(false);
+  });
+
   it('gives a spectator no hand and no host flag', () => {
     const outsider = buildView(room, seats, state, null, [], 'nobody');
     expect(outsider.youSeat).toBe(-1);
@@ -81,7 +104,7 @@ describe('buildHandResult', () => {
     ended.players = ended.players.map((p) => (p.seat === 2 ? { ...p, hand: [], played: 10 } : p));
     ended.players = ended.players.map((p) => (p.seat === 1 ? { ...p, played: 3 } : p));
     const deltas = settle(ended);
-    const result = buildHandResult(ended, seats, deltas, [0, 0, 0]);
+    const result = buildHandResult(ended, seats, deltas, [0, 0, 0], room.stake_per_la);
     expect(result.kind).toBe('normal');
     expect(result.headline).toBe('Chi thắng');
     expect(result.nextLeadSeat).toBe(2);
@@ -89,12 +112,14 @@ describe('buildHandResult', () => {
     expect(result.rows[1]?.cong).toBe(false);
     expect(result.rows[0]?.cards).toEqual(hands[0]);
     expect(result.rows.reduce((sum, r) => sum + r.deltaLa, 0)).toBe(0);
+    expect(result.rows.map((r) => r.deltaMoney)).toEqual(deltas.map((d) => d * 100));
+    expect(result.rows[2]?.moneyAfter).toBe(12_000);
   });
 
   it('describes a blocked sâm and hands the lead to the blocker', () => {
     const { state } = buildHand(hands, 2, 0);
     const failed = { ...state, phase: 'ended' as const, samSeat: 0, samResult: 'fail' as const, blockerSeat: 2 };
-    const result = buildHandResult(failed, seats, settle(failed), [0, 0, 0]);
+    const result = buildHandResult(failed, seats, settle(failed), [0, 0, 0], room.stake_per_la);
     expect(result.kind).toBe('sam-fail');
     expect(result.headline).toBe('An Báo Sâm thất bại');
     expect(result.winnerSeat).toBeNull();

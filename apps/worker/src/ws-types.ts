@@ -30,7 +30,10 @@ export interface SeatView {
   cardCount: number;
   passed: boolean;
   bao1: boolean;
+  /** Session total in lá, used by the session board. */
   totalLa: number;
+  /** Money balance in đồng: the seat's starting budget plus `totalLa` × `stakePerLa`. */
+  money: number;
 }
 
 export interface TrickEntry {
@@ -46,6 +49,10 @@ export interface ResultRow {
   cong: boolean;
   deltaLa: number;
   totalLa: number;
+  /** This hand's swing in đồng: `deltaLa` × `stakePerLa`. */
+  deltaMoney: number;
+  /** Money balance in đồng after this hand. */
+  moneyAfter: number;
 }
 
 export type HandResultKind = 'normal' | 'an-trang' | 'sam-success' | 'sam-fail' | 'den-bai';
@@ -73,6 +80,8 @@ export interface RoomView {
   seats: SeatView[];
   hand: string[];
   trick: TrickEntry[];
+  /** True when nothing on the table can be beaten: the next play leads a fresh trick. */
+  trickClosed: boolean;
   phase: 'sam-window' | 'playing' | 'ended' | null;
   turnSeat: number | null;
   samSeat: number | null;

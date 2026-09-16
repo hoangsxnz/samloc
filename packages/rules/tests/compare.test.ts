@@ -8,6 +8,19 @@ const quad = (rank: number): Combo => ({ type: 'quad', rank, length: 4 });
 const straight = (rank: number, length: number): Combo => ({ type: 'straight', rank, length });
 
 describe('canBeat', () => {
+  it('low straights rank below every normal straight of the same length', () => {
+    expect(canBeat(straight(3, 3), straight(4, 3))).toBe(true); // A-2-3 < 2-3-4
+    expect(canBeat(straight(4, 3), straight(5, 3))).toBe(true); // 2-3-4 < 3-4-5
+    expect(canBeat(straight(4, 3), straight(3, 3))).toBe(false);
+    expect(canBeat(straight(14, 3), straight(3, 3))).toBe(false); // Q-K-A holds off A-2-3
+  });
+
+  it('a low straight cannot beat a straight of a different length', () => {
+    expect(canBeat(straight(6, 4), straight(4, 3))).toBe(false);
+    expect(canBeat(straight(4, 3), straight(5, 4))).toBe(false);
+  });
+
+
   it('null prev: any combo may lead', () => {
     expect(canBeat(null, single(3))).toBe(true);
     expect(canBeat(null, quad(3))).toBe(true);

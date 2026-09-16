@@ -64,6 +64,7 @@ export type GameEvent =
   | { type: 'anTrang'; seat: number; kind: InstantWinKind }
   | { type: 'chat2'; seat: number; fromSeat: number; amount: number; chong: boolean }
   | { type: 'baoSam' | 'bao1' | 'denBai'; seat: number }
+  | { type: 'thoi2'; seat: number; count: number; amount: number }
   | { type: 'trickEnd'; leadSeat: number }
   | { type: 'handEnd'; winnerSeat: number | null };
 

@@ -1,15 +1,22 @@
-import { ACE_RANK, toCard, type CardId } from './cards';
+import { ACE_RANK, TWO_RANK, toCard, type CardId } from './cards';
 
 export type ComboType = 'single' | 'pair' | 'triple' | 'quad' | 'straight';
 
 export interface Combo {
   type: ComboType;
-  /** Top rank of the combo (for a straight, the highest card). */
+  /** Top rank of the combo. For a low straight this is the remapped top (A-2-3 → 3, 2-3-4 → 4). */
   rank: number;
   length: number;
 }
 
 const SAME_RANK_TYPES: Record<number, ComboType> = { 1: 'single', 2: 'pair', 3: 'triple', 4: 'quad' };
+
+/** A→1, 2→2, everything else unchanged. Used to read a straight with the 2 at the bottom. */
+export function lowRank(rank: number): number {
+  if (rank === ACE_RANK) return 1;
+  if (rank === TWO_RANK) return 2;
+  return rank;
+}
 
 function rankCounts(ranks: readonly number[]): Map<number, number> {
   const counts = new Map<number, number>();
@@ -17,17 +24,29 @@ function rankCounts(ranks: readonly number[]): Map<number, number> {
   return counts;
 }
 
-/**
- * Straight = ≥3 distinct consecutive ranks within 3..A. A 2 (rank 15) never belongs to a straight,
- * so K-A-2 and A-2-3 are both rejected; there is no wrap-around.
- */
-function isConsecutive(ranks: readonly number[]): boolean {
+/** ≥3 distinct ranks with no gaps. Returns the top rank, or null. */
+function runTop(ranks: readonly number[]): number | null {
   const unique = [...new Set(ranks)].sort((a, b) => a - b);
-  if (unique.length !== ranks.length || unique.length < 3) return false;
+  if (unique.length !== ranks.length || unique.length < 3) return null;
   const min = unique[0];
   const max = unique[unique.length - 1];
-  if (min === undefined || max === undefined || max > ACE_RANK) return false;
-  return max - min === unique.length - 1;
+  if (min === undefined || max === undefined) return null;
+  return max - min === unique.length - 1 ? max : null;
+}
+
+/** Straight in the normal reading: consecutive ranks inside 3..A, never a 2. */
+function normalRun(ranks: readonly number[]): number | null {
+  if (ranks.some((r) => r > ACE_RANK)) return null;
+  return runTop(ranks);
+}
+
+/**
+ * Straight with the 2 counting as the lowest rank: A-2-3, 2-3-4, A-2-3-4-5, …
+ * The 2 must be part of the run, so K-A-2 and Q-K-A never come back in through here.
+ */
+function lowRun(ranks: readonly number[]): number | null {
+  if (!ranks.includes(TWO_RANK)) return null;
+  return runTop(ranks.map(lowRank));
 }
 
 /** Recognises single / pair / triple / quad / straight; anything else is null. Input has no duplicate ids. */
@@ -43,8 +62,7 @@ export function parseCombo(cards: readonly CardId[]): Combo | null {
     return { type, rank, length: cards.length };
   }
 
-  if (isConsecutive(ranks)) {
-    return { type: 'straight', rank: Math.max(...ranks), length: cards.length };
-  }
+  const top = normalRun(ranks) ?? lowRun(ranks);
+  if (top !== null) return { type: 'straight', rank: top, length: cards.length };
   return null;
 }

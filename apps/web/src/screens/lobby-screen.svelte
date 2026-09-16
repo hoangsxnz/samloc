@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { api, ApiError } from '../lib/api';
+  import { formatMoney } from '../lib/format-money';
   import { go } from '../lib/router.svelte';
   import { session, setUser } from '../lib/session.svelte';
   import AppButton from '../components/app-button.svelte';
@@ -8,8 +9,6 @@
   import LobbyCreateRoom from './lobby-create-room.svelte';
   import LobbyRecentSessions from './lobby-recent-sessions.svelte';
 
-  // 10000 → "10.000"
-  const formatBudget = (n: number) => n.toLocaleString('vi-VN');
 
   let joinCode = $state('');
   let joinError = $state('');
@@ -49,7 +48,7 @@
   <header class="lobby-header">
     <div class="lobby-avatar">{(session.user?.displayName ?? '?').charAt(0).toUpperCase()}</div>
     <span class="lobby-name">{session.user?.displayName}</span>
-    <span class="chip lobby-chip">Ngân sách: {formatBudget(session.user?.budget ?? 0)}</span>
+    <span class="chip lobby-chip">Ngân sách: {formatMoney(session.user?.budget ?? 0)}</span>
     <button class="icon-btn" type="button" aria-label="Đăng xuất" onclick={logout}>⏻</button>
   </header>
 

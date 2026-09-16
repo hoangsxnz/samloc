@@ -17,7 +17,7 @@
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["RoomDO"] }],
   "d1_databases": [
-    { "binding": "DB", "database_name": "samloc-db", "database_id": "6f755391-a186-470a-b26a-b0900d2f4ca5" }
+    { "binding": "DB", "database_name": "samloc-db", "database_id": "e1a025bd-ad77-40fb-844a-e57598c0cdf4" }
   ],
   "observability": { "enabled": true }
 }

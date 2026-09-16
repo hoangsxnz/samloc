@@ -1,7 +1,8 @@
 import type { CardId } from './cards';
 import { cloneState } from './clone-state';
 import { parseCombo } from './combos';
-import { canBeat, lowestSingle } from './compare';
+import { canBeat } from './compare';
+import { lowestLegalMove } from './legal-moves';
 import { applyChat, checkBao1, updateDenWatch } from './reducer-events';
 import { resolveSamFail } from './reducer-sam';
 import type { GameEvent, RulesState, StepResult } from './state';
@@ -90,12 +91,16 @@ export function applyPass(state: RulesState, seat: number): StepResult {
   return { state: next, events };
 }
 
-/** Leading → auto-play the lowest single (always legal); responding → auto-pass. */
+/**
+ * Auto-play the cheapest legal move; pass only when nothing beats the trick. A leading seat always
+ * has a move, so it never passes. This applies inside a báo sâm hand too: a non-declarer who times
+ * out with a beating combo blocks the sâm.
+ */
 export function applyTimeout(state: RulesState, seat: number): StepResult {
   if (state.phase === 'ended') return fail(state, 'Ván đã kết thúc');
   if (seat !== state.turnSeat) return fail(state, 'Chưa đến lượt của bạn');
   const player = state.players[seat];
   if (!player) return fail(state, 'Chỗ ngồi không hợp lệ');
-  if (state.trick.combo === null) return applyPlay(state, seat, [lowestSingle(player.hand)]);
-  return applyPass(state, seat);
+  const move = lowestLegalMove(player.hand, state.trick.combo);
+  return move ? applyPlay(state, seat, move) : applyPass(state, seat);
 }

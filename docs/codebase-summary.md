@@ -14,16 +14,17 @@ Shared TypeScript module, zero dependencies, used by both server (DO) and client
 |---|---|
 | `index.ts` | Public exports: types, action/event APIs, `RULES_VERSION` |
 | `cards.ts` | Card type aliases and utilities |
-| `combos.ts` | Combo type definitions (single/pair/triple/quad/straight) and parsing |
+| `combos.ts` | Combo type definitions (single/pair/triple/quad/straight) and parsing; straights read normally (3…A) or low (A-2-3, 2-3-4…), where a low straight's `rank` is the remapped top so it always sorts below a normal one |
+| `legal-moves.ts` | `legalMoves()` / `lowestLegalMove()` — every legal play against a trick, cheapest first; drives the timeout auto-play and the client hint outlines |
 | `compare.ts` | `canBeat()` — determines if one combo beats another per house rules |
 | `deal.ts` | `dealCards()` — random 10-card deal and card pool utilities |
 | `instant-win.ts` | `checkInstantWin()` — ăn trắng (龍/tứ quý 2/same color/3 triples/5 pairs) at hand start |
 | `state.ts` | `RulesState` (turn order, hand state, player hands, phase) and player state shapes |
 | `clone-state.ts` | Deep copy of `RulesState` (safety for rules mutations) |
-| `reducer-play.ts` | `applyPlayAction()` — core turn logic (beat/pass/trick end); mutual recursion with reducers |
+| `reducer-play.ts` | `applyPlayAction()` — core turn logic (beat/pass/trick end); mutual recursion with reducers. `applyTimeout()` auto-plays `lowestLegalMove()` for every seat and passes only when nothing beats the trick |
 | `reducer-sam.ts` | `applyDeclareSam()` — báo sâm (sam declaration) state transitions and settlement exclusivity |
 | `reducer-events.ts` | Event generation (báo 1, chặt 2, chặt chồng, đền bài) piped through play/sam/settle |
-| `settle.ts` | `settle()` — hand settlement: ăn trắng / báo sâm / card count / thối 2 / cóng / chặt transfers; includes `assertZeroSum()` safety check |
+| `settle.ts` | `settle()` — hand settlement: ăn trắng / báo sâm / card count / thối 2 / cóng / chặt transfers; includes `assertZeroSum()` safety check; `thoi2Counts()` reports the per-seat thối 2 breakdown for the hand-end announcement |
 
 No I/O, no imports from Node/Cloudflare, state JSON-serializable (rules engine is used on server after every action and on client for UI hints only).
 
@@ -58,19 +59,23 @@ Cloudflare Workers (Hono) + Durable Object + D1. One RoomDO instance per active 
 | `room-do.ts` | RoomDO class: WebSocket hibernation API, snapshot routing, rate limiting (10 msg/s, burst 20); `emojiAllowed()` cooldown tracking (1500ms per-seat, in-memory Map) and `broadcastEmoji()` |
 | `room-do-store.ts` | Typed SQLite wrappers: schema creation, room/seat read-write (only place that writes SQL, fully parameterised) |
 | `room-do-actions.ts` | `handleMessage()` dispatcher: join/ready/settings/start/nextHand/leave/play/pass/declareSam/emoji (with 1500ms per-seat cooldown) |
-| `room-do-hand.ts` | Hand lifecycle: `beginHand()` (deal), `applyGameAction()` (play validation), `endHand()` (settlement), `onAlarm()` (turn timeout), `closeRoom()` (cleanup), `armIdleClose()` (60s timeout after hand ends with no sockets) |
-| `room-do-view.ts` | `buildView()` — per-socket snapshot with opponent hands hidden; `buildHandResult()` — settlement display |
+| `room-do-hand.ts` | Hand lifecycle: `beginHand()` (deal), `applyGameAction()` (play validation), `endHand()` (settlement, broadcasts one `thoi2` event per paying seat), `onAlarm()` (turn timeout), `closeRoom()` (cleanup), `armIdleClose()` (60s timeout after hand ends with no sockets) |
+| `room-do-view.ts` | `buildView()` — per-socket snapshot with opponent hands hidden (`SeatView.money` = `budget_base` + `total_la` × stake); `buildHandResult()` — settlement display with `deltaMoney` / `moneyAfter` |
+| `room-do-trick.ts` | `TrickLog` (`{ entries, closed }`), `parseTrick()` (tolerates the legacy bare-array shape), `nextTrick()` — a finished trick stays on the table until the next lead, entry cards stored ascending |
+| `budget.ts` | `STARTING_BUDGET` + `budgetFor()` — D1 money balance, shared by the auth routes and the WS upgrade |
 
 #### Durable Object SQLite Schema (`src/room-do-store.ts` inlined schema)
 
 ```
 room (id=1)
   code, hand_no, max_players, turn_seconds, stake_per_la, status,
-  state_json (RulesState), result_json (HandResult), trick_json (TrickEntry[]),
+  state_json (RulesState), result_json (HandResult), trick_json (TrickLog: { entries, closed }),
   turn_deadline, next_lead_user_id (user id, not seat, guards against seat compaction bug)
 
 seats (per room, SQLite-only, not persisted to D1)
-  seat (0..n-1), user_id, display_name, ready, connected, total_la (hand results accumulate here)
+  seat (0..n-1), user_id, display_name, ready (1 on insert), connected,
+  total_la (hand results accumulate here),
+  budget_base (D1 money balance when the seat was created; added by a guarded ALTER for live rooms)
 ```
 
 #### D1 (Cloud SQL) Schema (`migrations/0001_init.sql`)
@@ -106,8 +111,11 @@ Svelte 5 + Vite, landscape-only responsive design (844×390 design reference, sc
 | `lib/ws-client.svelte.ts` | WebSocket wrapper: `connected` state, `send()` with JSON stringify, auto-reconnect on close; `onEmoji` callback for emoji frames |
 | `lib/room.svelte.ts` | `RoomStore` singleton: `view`, `ws`, `lastError`, `reactions` (ephemeral, 1600ms TTL, cap 3/seat); methods `join()`/`ready()`/`settings()`/`start()`/`play()`/`pass()`/`declareSam()`/`nextHand()`/`leave()`/`sendEmoji()`; `reactionsFor(seat)` helper |
 | `lib/orientation.svelte.ts` | Landscape-lock detection and request on first pointer event |
-| `lib/table-layout.ts` | Seat/card positioning math: `fanLayout()`, `tableScale()`, opponent positions; exports `Point`, `CENTRE_POINT`, `FAN_ORIGIN`, `slotOrigin()` with updated `FAN_TRACK_LEFT` 236 |
-| `lib/card-view.ts` | Card rendering helpers: suit glyphs, rank labels |
+| `lib/table-layout.ts` | Seat/card positioning math: `fanLayout()` (flat row of left offsets, no arc), `tableScale()`, opponent positions; exports `Point`, `CENTRE_POINT`, `FAN_ORIGIN`, `slotOrigin()` with updated `FAN_TRACK_LEFT` 236 |
+| `lib/card-view.ts` | Card rendering helpers: suit glyphs, rank labels, `comboLabel()` (renders a low straight as A-2-3) |
+| `lib/format-money.ts` | `formatMoney()` / `formatMoneyDelta()` — vi-VN grouping with `đ`, shared by lobby, seats and result rows |
+| `lib/hand-order.ts` | `orderHand(hand, 'rank' \| 'group')` — display order behind the "Xếp bài" button; sets, then runs, then singles |
+| `lib/table-theme.svelte.ts` | Device-local felt colour (4 presets, `localStorage` `samloc.felt`, green fallback); exposes the three `--felt*` vars for `.table-root` |
 | `lib/emoji-glyphs.ts` | Emoji allowlist: `EMOJI_GLYPHS`, `EMOJI_ORDER`, `EMOJI_LABELS` (client-side only) |
 
 #### Shared Components (`components/`)
@@ -125,12 +133,12 @@ Reusable UI primitives:
 - `orientation-overlay.svelte` — full-screen "rotate to landscape" message on portrait orientation
 - `seat-row.svelte` — compact row for lobby: avatar initial, name, session chips
 - `table-top-bar.svelte` — game table header: connection dot, room code, hand number, menu button
-- `table-menu-sheet.svelte` — game table ≡ menu: "Rời phòng" with warning on leave-during-play
-- `action-bar.svelte` — bottom-right: "Bỏ lượt" + "Đánh" buttons, "Báo Sâm" pill
-- `hand-fan.svelte` — 10-card layout with tap-to-select, lift on select, gold outline
+- `table-menu-sheet.svelte` — game table ≡ menu: felt colour swatches + "Rời phòng" with warning on leave-during-play
+- `action-bar.svelte` — bottom-right: "Xếp bài" + "Bỏ lượt" + "Đánh" buttons, "Báo Sâm" pill
+- `hand-fan.svelte` — flat 10-card row with tap-to-select, lift on select, gold outline on playable cards
 - `centre-stack.svelte` — trick display (newest on top, fade-out on older combos); newer tricks fade in over 260ms
-- `opponent-seat.svelte` — 40px avatar (countdown digits replace the initial on the active seat), name, 28×38px card-back count, 48px TimerRing arc overlay, passed/disconnected states, emoji reactions
-- `me-chip.svelte` — bottom-left: 40px avatar (countdown digits replace the initial on my turn), turn label, invalidReason or đền bài warning, 48px TimerRing arc overlay, emoji reactions
+- `opponent-seat.svelte` — 40px avatar (countdown digits replace the initial on the active seat), name, 28×38px card-back count, money, 48px TimerRing arc overlay, passed/disconnected states, emoji reactions
+- `me-chip.svelte` — bottom-left: 40px avatar (countdown digits replace the initial on my turn), turn label, money or invalidReason/đền bài warning, 48px TimerRing arc overlay, emoji reactions rising to the right of the chip
 - `settings-edit-sheet.svelte` — modal for host to adjust room settings during waiting
 - `card-flight.svelte` — fly-to-centre play animation (260ms, suppressed under prefers-reduced-motion)
 - `emoji-bar.svelte` — 8-emoji reaction picker (top 248/left 40), closes on outside pointerdown
@@ -145,10 +153,12 @@ Reusable UI primitives:
 | `lobby-create-room.svelte` | Room creation form (3 setting pills + "Tạo phòng" button) |
 | `lobby-recent-sessions.svelte` | Scrolling session list: room code, players, open indicator, net score with color (green/red) |
 | `waiting-screen.svelte` | Pre-game: room code (shareable), seat list, ready toggle (or "Sẵn sàng/Chưa"), host-only start button, leave with warning |
-| `table/table-screen.svelte` | Game table root: scales 844×390 design to viewport, mounts `table-logic.svelte.ts`, routes back to lobby if waiting |
-| `table/table-logic.svelte.ts` | Turn logic: `combo`/`currentCombo`, `canPlay`, `denWarn`, event-tag queue (deduped, capped 3/seat), timer countdown, `flight` state for play animation (last-trick-key driven, no replay on reconnect) |
-| `table/hand-result-modal.svelte` | Post-hand result: winner/headline, 2-column grid of players + cards/score, session board button, "Ván tiếp" button (host only) |
-| `table/result-row.svelte` | Result row component: player avatar/name, net score ±, remaining cards, session total |
+| `table/table-screen.svelte` | Game table root: viewport scale, route guards, overlays, and the 1.8 s result-modal delay (tap anywhere to skip) |
+| `table/table-surface.svelte` | Everything inside `.table-root`: seats, centre stack, flight, me-chip, emoji bar, hand fan, action bar or the "Bạn sẽ vào ván sau" spectator banner |
+| `table/table-logic.svelte.ts` | Turn logic: `combo`/`currentCombo`, `canPlay`, `denWarn`, `moves`/`playableIds` (hints), combo-seeding `toggle()`, `sortMode`, timer countdown, `flight` state for play animation (last-trick-key driven, no replay on reconnect) |
+| `table/table-tags.svelte.ts` | `TagQueue`: floating per-seat event tags (deduped, capped 3/seat, 1.6 s TTL) and the aria-live announcement |
+| `table/hand-result-modal.svelte` | Post-hand result: winner/headline, auto-fit grid of players + cards/money, session board button, single-line footer with "Rời phòng" (everyone) and "Ván tiếp" (host only) |
+| `table/result-row.svelte` | Compact result row: avatar/name (+ Cóng), money delta, remaining cards, money after the hand |
 
 #### Styling (`app.css`, `app.svelte`)
 

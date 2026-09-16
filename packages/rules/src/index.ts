@@ -17,8 +17,9 @@ export {
   sortHand,
   buildDeck,
 } from './cards';
-export { type ComboType, type Combo, parseCombo } from './combos';
+export { type ComboType, type Combo, parseCombo, lowRank } from './combos';
 export { canBeat, lowestSingle, highestSingle } from './compare';
+export { legalMoves, lowestLegalMove } from './legal-moves';
 export { type InstantWinKind, hasInstantWin } from './instant-win';
 export { type Deal, mulberry32, shuffle, createDeal, lowestCardSeat } from './deal';
 export {
@@ -34,4 +35,4 @@ export {
   buildHand,
   applyAction,
 } from './state';
-export { settle } from './settle';
+export { settle, thoi2Counts, type Thoi2Count } from './settle';

@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { HandResult, SeatView } from '@samloc/worker/ws-types';
   import AppButton from '../../components/app-button.svelte';
+  import { formatMoney } from '../../lib/format-money';
   import { room } from '../../lib/room.svelte';
   import ResultRow from './result-row.svelte';
 
@@ -51,24 +52,25 @@
         {/each}
       </div>
 
-      <p class="result-next">{nextLeadName} cầm cái ván sau</p>
-
       {#if showSessionBoard}
         <div class="session-board">
           {#each seats as seat (seat.seat)}
-            <span>{seat.name}: {seat.totalLa >= 0 ? '+' : ''}{seat.totalLa}</span>
+            <span>{seat.name}: {formatMoney(seat.money)}</span>
           {/each}
         </div>
       {/if}
 
       <footer class="result-foot">
         <AppButton variant="ghost" onclick={() => (showSessionBoard = !showSessionBoard)}>
-          Xem bảng điểm phiên
+          Bảng điểm phiên
         </AppButton>
+        <p class="result-status">
+          <span>{nextLeadName} cầm cái ván sau</span>
+          {#if !youAreHost}<span>Đang chờ chủ phòng bắt đầu ván mới…</span>{/if}
+        </p>
+        <AppButton variant="danger" onclick={() => room.leave()}>Rời phòng</AppButton>
         {#if youAreHost}
           <AppButton onclick={() => room.nextHand()}>Ván tiếp</AppButton>
-        {:else}
-          <p class="result-waiting">Đang chờ chủ phòng bắt đầu ván mới…</p>
         {/if}
       </footer>
     </div>
@@ -95,10 +97,9 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 640px;
-    max-width: calc(100vw - 32px);
-    height: 330px;
-    max-height: calc(100vh - 32px);
+    width: min(820px, calc(100vw - 32px));
+    height: auto;
+    max-height: calc(100dvh - 32px);
     display: flex;
     flex-direction: column;
     gap: var(--sp-2);
@@ -147,19 +148,13 @@
     font-size: 14px;
     color: var(--gold);
   }
+  /* auto-fit keeps 2 players on two wide columns and packs 5 into three, so nothing scrolls. */
   .result-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: var(--sp-2);
-    flex: 1;
     min-height: 0;
     overflow-y: auto;
-  }
-  .result-next {
-    text-align: center;
-    font-size: var(--fs-xs);
-    color: var(--text-muted);
-    margin: 0;
   }
   .session-board {
     display: flex;
@@ -173,9 +168,15 @@
     align-items: center;
     gap: var(--sp-3);
   }
-  .result-waiting {
-    flex: 1;
-    text-align: right;
+  /* One horizontal line: the status used to stack vertically when squeezed as a narrow flex item. */
+  .result-status {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--sp-3);
+    white-space: nowrap;
+    overflow: hidden;
     font-size: var(--fs-xs);
     color: var(--text-muted);
     margin: 0;

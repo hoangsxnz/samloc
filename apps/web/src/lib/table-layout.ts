@@ -60,32 +60,16 @@ export const FAN_TRACK_LEFT = 236;
 export const FAN_TRACK_WIDTH = 308;
 export const FAN_BASE_TOP = 312;
 
-export interface FanCard {
-  left: number;
-  top: number;
-  rotate: number;
-}
-
 /**
- * Card positions along the bottom arc: step 28 px, rotation −10°→+10°, outer cards 12 px lower.
- * With fewer than 10 cards the step is kept and the group is re-centred on the 308 px track,
- * whose origin (x 236) leaves clearance for the me-chip on the left and the action bar on the right.
+ * Left offsets of a flat hand row: step 28 px, no arc and no rotation. With fewer than 10 cards the
+ * step is kept and the group is re-centred on the 308 px track, whose origin (x 236) leaves
+ * clearance for the me-chip on the left and the action bar on the right.
  */
-export function fanLayout(count: number): FanCard[] {
+export function fanLayout(count: number): number[] {
   if (count <= 0) return [];
   const groupWidth = CARD_WIDTH + FAN_STEP * (count - 1);
   const startX = FAN_TRACK_LEFT + (FAN_TRACK_WIDTH - groupWidth) / 2;
-  const mid = (count - 1) / 2;
-  const cards: FanCard[] = [];
-  for (let i = 0; i < count; i++) {
-    const t = count === 1 ? 0 : (i - mid) / mid;
-    cards.push({
-      left: startX + FAN_STEP * i,
-      top: FAN_BASE_TOP + 12 * t * t,
-      rotate: 10 * t,
-    });
-  }
-  return cards;
+  return Array.from({ length: count }, (_, i) => startX + FAN_STEP * i);
 }
 
 export interface Point {

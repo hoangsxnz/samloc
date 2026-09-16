@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { budgetFor } from './budget';
 import { isRoomCode } from './room-code';
 import { getSessionCookie, getSessionUser } from './sessions';
 
@@ -31,6 +32,7 @@ wsRoutes.get('/ws/:code', async (c) => {
     .first<RoomSettingsRow>();
   if (!row || row.closed_at !== null) return c.text('Không tìm thấy phòng', 404);
 
+  const budget = await budgetFor(c.env.DB, user.id);
   const headers = new Headers(c.req.raw.headers);
   headers.set('x-user-id', user.id);
   headers.set('x-user-name', encodeURIComponent(user.displayName));
@@ -38,6 +40,7 @@ wsRoutes.get('/ws/:code', async (c) => {
   headers.set('x-max-players', String(row.max_players));
   headers.set('x-turn-seconds', String(row.turn_seconds));
   headers.set('x-stake', String(row.stake_per_la));
+  headers.set('x-budget', String(budget));
   const stub = c.env.ROOM.get(c.env.ROOM.idFromName(code));
   return stub.fetch(c.req.raw.url, { headers });
 });

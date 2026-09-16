@@ -56,6 +56,31 @@ export function settle(state: RulesState): number[] {
   return assertZeroSum(deltas);
 }
 
+export interface Thoi2Count {
+  seat: number;
+  /** 2s still in hand when the hand ended. */
+  count: number;
+  /** Lá penalty for those 2s (before the stake multiplier). */
+  amount: number;
+}
+
+/**
+ * Read-only report of who pays thối 2, for the hand-end announcement. Empty for ăn trắng and
+ * báo sâm hands, which skip card counting entirely. `settle` keeps its own arithmetic.
+ */
+export function thoi2Counts(state: RulesState): Thoi2Count[] {
+  if (state.instantWin !== null || state.samSeat !== null) return [];
+  const winner = state.winnerSeat;
+  if (winner === null) return [];
+  const out: Thoi2Count[] = [];
+  for (const p of state.players) {
+    if (p.seat === winner) continue;
+    const count = p.hand.filter(isTwo).length;
+    if (count > 0) out.push({ seat: p.seat, count, amount: THOI_2_AMOUNT * count });
+  }
+  return out;
+}
+
 function assertZeroSum(deltas: number[]): number[] {
   const sum = deltas.reduce((a, b) => a + b, 0);
   if (sum !== 0) throw new Error(`Tổng điểm không cân bằng: ${sum}`);

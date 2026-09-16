@@ -31,12 +31,28 @@ describe('parseCombo', () => {
     expect(parseCombo(['KS', 'AH', '2D'])).toBeNull();
   });
 
-  it('straight: A-2-3 is null', () => {
-    expect(parseCombo(['AS', '2H', '3D'])).toBeNull();
+  it('straight: Q-K-A-2 is null', () => {
+    expect(parseCombo(['QS', 'KS', 'AH', '2D'])).toBeNull();
   });
 
-  it('straight: 2-3-4 is null', () => {
-    expect(parseCombo(['2S', '3H', '4D'])).toBeNull();
+  it('straight: A-2 is null (too short)', () => {
+    expect(parseCombo(['AS', '2H'])).toBeNull();
+  });
+
+  it('low straight: A-2-3 parses length 3 rank 3', () => {
+    expect(parseCombo(['AS', '2H', '3D'])).toEqual({ type: 'straight', rank: 3, length: 3 });
+  });
+
+  it('low straight: 2-3-4 parses length 3 rank 4', () => {
+    expect(parseCombo(['2S', '3H', '4D'])).toEqual({ type: 'straight', rank: 4, length: 3 });
+  });
+
+  it('low straight: A-2-3-4-5 parses length 5 rank 5', () => {
+    expect(parseCombo(['AS', '2H', '3D', '4C', '5S'])).toEqual({ type: 'straight', rank: 5, length: 5 });
+  });
+
+  it('low straight: A-2-3-3 is null (duplicate rank)', () => {
+    expect(parseCombo(['AS', '2H', '3D', '3C'])).toBeNull();
   });
 
   it('straight: mixed suits parse (suits irrelevant)', () => {

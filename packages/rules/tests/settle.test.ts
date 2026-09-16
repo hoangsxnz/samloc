@@ -1,5 +1,5 @@
 import type { CardId } from '../src/cards';
-import { settle } from '../src/settle';
+import { settle, thoi2Counts } from '../src/settle';
 import type { RulesState } from '../src/state';
 import { makeState } from './state-test-helpers';
 
@@ -98,5 +98,28 @@ describe('settle', () => {
     expect(deltas[0]).toBe(-(4 + 3));
     expect(deltas[1]).toBe(7);
     expect(deltas[2]).toBe(0);
+  });
+
+  describe('thoi2Counts', () => {
+    it('reports each loser holding a 2 with the +5 per card penalty', () => {
+      const s = ended([{ hand: [] }, { hand: ['2S', '2H', '3S'] }, { hand: ['4S'] }], 0);
+      expect(thoi2Counts(s)).toEqual([{ seat: 1, count: 2, amount: 10 }]);
+    });
+
+    it('is empty for an ăn trắng hand', () => {
+      const s = ended([{ hand: [] }, { hand: ['2S'] }], 0, { instantWin: { seat: 0, kind: 'nam-doi' } });
+      expect(thoi2Counts(s)).toEqual([]);
+    });
+
+    it('is empty for a báo sâm hand', () => {
+      const s = ended([{ hand: [] }, { hand: ['2S'] }], 0, { samSeat: 0, samResult: 'success' });
+      expect(thoi2Counts(s)).toEqual([]);
+    });
+
+    it('matches the thối 2 share of the settle arithmetic', () => {
+      const s = ended([{ hand: [] }, { hand: ['2S', '3S'] }], 0);
+      expect(settleZeroSum(s)[1]).toBe(-(2 + 5));
+      expect(thoi2Counts(s)).toEqual([{ seat: 1, count: 1, amount: 5 }]);
+    });
   });
 });

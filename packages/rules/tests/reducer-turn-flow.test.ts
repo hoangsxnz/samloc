@@ -125,9 +125,18 @@ describe('turn flow', () => {
     expect(res.state.players[0]?.hand).toEqual(['9S', 'KS']);
   });
 
-  it('timeout while responding auto-passes', () => {
-    let s = makeState([['3S', '9S'], ['4S', '4H'], ['5S', 'KS']]);
+  it('timeout while responding auto-plays the lowest beating combo', () => {
+    let s = makeState([['3S', '9S'], ['4S', 'KH'], ['5S', 'KS']]);
     s = play(s, 0, ['3S']).state;
+    const res = step(s, { type: 'timeout', seat: 1 });
+    expect(res.state.trick.cards).toEqual(['4S']);
+    expect(res.state.players[1]?.passed).toBe(false);
+    expect(res.state.turnSeat).toBe(2);
+  });
+
+  it('timeout while responding passes when nothing beats the trick', () => {
+    let s = makeState([['KS', '9S'], ['4S', '4H'], ['5S', 'AS']]);
+    s = play(s, 0, ['KS']).state;
     const res = step(s, { type: 'timeout', seat: 1 });
     expect(res.state.players[1]?.passed).toBe(true);
     expect(res.state.players[1]?.hand).toHaveLength(2);

@@ -1,5 +1,56 @@
 # Project Changelog — Sâm Lốc Online
 
+## 2026-09-15
+
+### Rules
+
+#### ⚠️ Low straights: 2 may sit at the bottom of a sảnh
+- `A-2-3`, `2-3-4`, `A-2-3-4-5` … are now valid straights; `K-A-2` and `Q-K-A-2` stay invalid
+- Order is `A-2-3 < 2-3-4 < 3-4-5 < … < Q-K-A`; a low straight never beats a normal one of the same length
+- Sảnh rồng (ăn trắng) is unchanged — it still requires a 10-card run inside 3…A
+- Supersedes the "Straight range: 3 … A only" line in `docs/game-rules.md`
+
+#### ⚠️ Timeout auto-plays for every seat, not just the leader
+- On timeout a player plays their lowest legal move and passes only when nothing beats the trick
+- Applies inside a báo sâm hand too: a non-declarer who times out blocks the sâm and the declarer pays
+- Supersedes the "if responding → auto-pass" line in `docs/game-rules.md`
+- New rules module `legal-moves.ts` (`legalMoves()` / `lowestLegalMove()`) backs both this and the client hints
+
+### Features
+
+#### Money instead of ±lá
+- Seats and result rows show a real money balance (10 000 start + Σ lá × stake, read from D1 at socket upgrade)
+- `SeatView.money`, `ResultRow.deltaMoney` / `moneyAfter` added to the wire types; `totalLa` kept for the session board
+- Seat rows carry `budget_base`; the WS upgrade forwards it as `x-budget`
+- Worker helper `budget.ts` shared by the auth routes and the WS route
+
+#### Play hints and hand re-sorting
+- On your turn, cards belonging to a legal play carry a gold outline; nothing is dimmed, nothing is highlighted off-turn
+- Tapping an outlined card with an empty selection selects the whole cheapest combo containing it
+- New "Xếp bài" button toggles between rank order and combo grouping
+
+#### Mid-session join
+- A player may join a room that is already playing, up to the room's player count
+- They see a "Bạn sẽ vào ván sau" banner with no action controls, and are dealt in on the next hand
+- New seats are ready by default
+
+#### Thối 2 announcement
+- New `thoi2` game event, broadcast per paying seat at hand end, rendered as a floating "Thối 2 ×N (+M)" seat tag
+
+#### Table colour presets
+- Four felt colours (green / blue / burgundy / charcoal) in the table menu, persisted per device in `localStorage`
+
+### Fixes
+
+- Played cards no longer vanish when a trick ends: the winning combo stays on the table until the next lead (`trick_json` is now `{ entries, closed }`, legacy array shape still parsed)
+- Combos are stored sorted, so a hand clicked as `5-4-3` reads as `3-4-5` for every viewer, in the flight animation and in the result modal
+- The result modal now waits 1.8 s so the last combo is visible; a tap anywhere shows it immediately
+- Result modal fits 5 players without an internal scrollbar: auto-fit grid, compact single-line rows, auto height
+- The "đang chờ chủ phòng" line renders horizontally instead of stacking
+- Every player, not just the host, has a "Rời phòng" button on the result screen
+- Reaction bubbles above my chip are no longer painted over by the emoji bar
+- The hand lies in a flat row instead of an arc
+
 ## 2026-09-14
 
 ### Major Changes

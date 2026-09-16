@@ -11,7 +11,7 @@ export interface RoomRow {
   status: RoomStatus;
   state_json: string | null;
   result_json: string | null;
-  /** Combos played in the current trick, newest last (JSON `TrickEntry[]`). */
+  /** Current trick log (JSON `TrickLog`); a finished trick stays until the next lead. */
   trick_json: string | null;
   turn_deadline: number | null;
   /** Who leads the next hand; resolved to a seat when the hand begins. */
@@ -25,6 +25,8 @@ export interface SeatRow {
   ready: number;
   connected: number;
   total_la: number;
+  /** Money balance when the seat was created; displayed money adds total_la × stake. */
+  budget_base: number;
 }
 
 type RoomPatch = Partial<Omit<RoomRow, 'code'>>;
@@ -40,7 +42,7 @@ CREATE TABLE IF NOT EXISTS room (
 CREATE TABLE IF NOT EXISTS seats (
   seat INTEGER PRIMARY KEY, user_id TEXT NOT NULL UNIQUE, display_name TEXT NOT NULL,
   ready INTEGER NOT NULL DEFAULT 0, connected INTEGER NOT NULL DEFAULT 0,
-  total_la INTEGER NOT NULL DEFAULT 0
+  total_la INTEGER NOT NULL DEFAULT 0, budget_base INTEGER NOT NULL DEFAULT 0
 );`;
 
 /** Typed wrappers over the Durable Object's SQLite storage; the only place that writes SQL. */
@@ -49,6 +51,13 @@ export class RoomStore {
 
   ensureSchema(): void {
     this.sql.exec(SCHEMA);
+    // CREATE TABLE IF NOT EXISTS leaves a room created before this column shipped untouched, and
+    // SQLite has no ADD COLUMN IF NOT EXISTS; a duplicate-column error here is the expected no-op.
+    try {
+      this.sql.exec('ALTER TABLE seats ADD COLUMN budget_base INTEGER NOT NULL DEFAULT 0');
+    } catch {
+      // Column already present.
+    }
   }
 
   seedRoom(code: string, settings: RoomSettings): void {
@@ -86,17 +95,29 @@ export class RoomStore {
     return this.rows<SeatRow>('SELECT * FROM seats WHERE user_id = ?', userId)[0] ?? null;
   }
 
-  /** Appends after the highest seat so a vacated number is never reused mid-session; the next deal re-packs. */
-  addSeat(userId: string, displayName: string): SeatRow {
+  /**
+   * Appends after the highest seat so a vacated number is never reused mid-session; the next deal
+   * re-packs. New seats are ready by default — the waiting screen can still un-ready deliberately.
+   */
+  addSeat(userId: string, displayName: string, budgetBase: number): SeatRow {
     const seats = this.listSeats();
     const seat = seats.length === 0 ? 0 : (seats[seats.length - 1]?.seat ?? -1) + 1;
     this.sql.exec(
-      'INSERT INTO seats (seat, user_id, display_name, connected) VALUES (?, ?, ?, 1)',
+      'INSERT INTO seats (seat, user_id, display_name, ready, connected, budget_base) VALUES (?, ?, ?, 1, 1, ?)',
       seat,
       userId,
       displayName,
+      budgetBase,
     );
-    return { seat, user_id: userId, display_name: displayName, ready: 0, connected: 1, total_la: 0 };
+    return {
+      seat,
+      user_id: userId,
+      display_name: displayName,
+      ready: 1,
+      connected: 1,
+      total_la: 0,
+      budget_base: budgetBase,
+    };
   }
 
   setSeat(seat: number, patch: SeatPatch): void {

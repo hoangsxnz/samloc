@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { ResultRow } from '@samloc/worker/ws-types';
   import PlayingCard from '../../components/playing-card.svelte';
+  import { formatMoney, formatMoneyDelta } from '../../lib/format-money';
 
   interface Props {
     row: ResultRow;
@@ -21,7 +22,7 @@
     {#if row.cong}<i>Cóng</i>{/if}
   </div>
   <div class="result-net" class:pos={row.deltaLa >= 0} class:neg={row.deltaLa < 0}>
-    {row.deltaLa >= 0 ? '+' : ''}{row.deltaLa}
+    {formatMoneyDelta(row.deltaMoney)}
   </div>
   <div class="result-cards">
     {#if isWinner}
@@ -30,10 +31,7 @@
       {#each row.cards as id (id)}<PlayingCard {id} size="xs" />{/each}
     {/if}
   </div>
-  <div class="result-total">
-    Tổng phiên
-    <b class:pos={row.totalLa >= 0} class:neg={row.totalLa < 0}>{row.totalLa >= 0 ? '+' : ''}{row.totalLa}</b>
-  </div>
+  <div class="result-total">{formatMoney(row.moneyAfter)}</div>
 </div>
 
 <style>
@@ -41,15 +39,15 @@
     background: var(--bg);
     border: 1px solid var(--line);
     border-radius: var(--r-md);
-    padding: 8px 10px;
+    padding: 6px 8px;
     display: grid;
-    grid-template-columns: 32px 1fr auto;
-    gap: 2px 8px;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 2px 6px;
     align-items: center;
   }
   .result-av {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--surface-2);
     border: 2px solid var(--line);
@@ -72,15 +70,19 @@
     margin-left: 6px;
   }
   .result-net {
-    font-size: var(--fs-md);
+    font-size: var(--fs-sm);
     font-weight: 700;
     text-align: right;
+    white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
+  /* Tighter overlap and no wrapping: ten cards must still fit one column of the result grid. */
   .result-cards {
     display: flex;
+    flex-wrap: nowrap;
     align-items: center;
     height: 32px;
+    min-width: 0;
   }
   .result-cards i {
     font-style: normal;
@@ -88,7 +90,8 @@
     color: var(--text-muted);
   }
   .result-cards :global(.card-xs) {
-    margin-left: -7px;
+    margin-left: -12px;
+    flex-shrink: 0;
   }
   .result-cards :global(.card-xs:first-child) {
     margin-left: 0;
@@ -98,6 +101,7 @@
     color: var(--text-muted);
     text-align: right;
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
   }
   .pos {
     color: var(--success);

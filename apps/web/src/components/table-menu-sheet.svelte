@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { RoomStatus } from '@samloc/worker/ws-types';
   import { room } from '../lib/room.svelte';
+  import { FELT_ORDER, FELT_PRESETS, tableTheme } from '../lib/table-theme.svelte';
   import ConfirmDialog from './confirm-dialog.svelte';
 
   interface Props {
@@ -24,6 +25,19 @@
 <div class="sheet-overlay">
   <button type="button" class="scrim-backdrop" aria-label="Đóng menu" onclick={onclose}></button>
   <div class="panel menu-sheet" role="dialog" aria-modal="true" aria-label="Menu bàn chơi">
+    <div class="felt-picker" role="group" aria-label="Màu bàn">
+      {#each FELT_ORDER as key (key)}
+        <button
+          type="button"
+          class="felt-swatch"
+          class:active={tableTheme.felt === key}
+          style="background:{FELT_PRESETS[key].felt};"
+          aria-label={FELT_PRESETS[key].label}
+          aria-pressed={tableTheme.felt === key}
+          onclick={() => tableTheme.set(key)}
+        ></button>
+      {/each}
+    </div>
     <button type="button" class="btn btn-danger" onclick={requestLeave}>Rời phòng</button>
   </div>
 </div>
@@ -61,5 +75,20 @@
     display: flex;
     flex-direction: column;
     gap: var(--sp-2);
+  }
+  .felt-picker {
+    display: flex;
+    gap: var(--sp-2);
+  }
+  .felt-swatch {
+    width: 36px;
+    height: 28px;
+    border-radius: var(--r-sm);
+    border: 2px solid var(--line);
+    cursor: pointer;
+    padding: 0;
+  }
+  .felt-swatch.active {
+    border-color: var(--gold);
   }
 </style>

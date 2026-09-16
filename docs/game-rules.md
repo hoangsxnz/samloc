@@ -9,7 +9,9 @@ Unit: **lá**. Room setting: **stake per lá** (50/100/200/500, default 100); di
 
 ## Combinations
 - Single, pair, triple (sám cô), four of a kind (tứ quý), straight (sảnh) of ≥3 consecutive ranks.
-- **Straight range: 3 … A only.** Q-K-A valid; K-A-2 and A-2-3 invalid. No suit requirement.
+- **Straight range: 3 … A, plus the low forms where 2 counts as the lowest rank** — A-2-3, 2-3-4, A-2-3-4-5 … are valid (confirmed 2026-09-14, supersedes the earlier "3 … A only" line). Q-K-A valid. **K-A-2 and Q-K-A-2 stay invalid**: the 2 may sit at the bottom of a straight, never at the top. No suit requirement.
+- Low straights rank below every normal straight of the same length: `A-2-3 < 2-3-4 < 3-4-5 < … < Q-K-A`.
+- Sảnh rồng (ăn trắng) is unaffected: it still requires a 10-card run inside 3 … A, so a low run is not an instant win.
 - No "đôi thông" (consecutive pairs) in this game.
 
 ## Beating
@@ -22,7 +24,12 @@ Unit: **lá**. Room setting: **stake per lá** (50/100/200/500, default 100); di
 - Trick ends when all others pass; last player to play leads next.
 - **Báo 1**: when a player drops to 1 card, the table is notified (server auto-announces).
 - **Đền bài (chặn báo 1)**: if the player immediately before a "báo 1" player leads a single while still holding a strictly higher single, and the báo-1 player then wins on that trick, the leader pays every loser's amount for that hand (confirmed 2026-09-14).
-- Turn timer is a room setting (15/20/30 s, default 20). On timeout: if leading → auto-play lowest single; if responding → auto-pass.
+- Turn timer is a room setting (15/20/30 s, default 20). **On timeout every player auto-plays their lowest legal move**, and passes only when nothing they hold beats the trick (confirmed 2026-09-14, supersedes the earlier "if responding → auto-pass" line). A leading seat always has a legal move, so it never passes.
+- This holds inside a báo sâm hand too: a non-declarer who times out with a beating combo blocks the sâm, and the declarer pays (confirmed 2026-09-15, chosen for consistency).
+
+## Joining
+- A player may join a room that is already playing, up to the room's player count. They spectate the current hand and are dealt in on the next one.
+- A seat is ready by default when it is created; the waiting screen can still un-ready deliberately.
 
 ## Hand end & scoring
 - First to empty hand wins. Each loser pays winner: cards left in hand.

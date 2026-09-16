@@ -5,25 +5,26 @@
   interface Props {
     hand: string[];
     selected: string[];
+    /** Cards that belong to at least one legal play; empty off-turn. */
+    playable: Set<string>;
     ontoggle: (id: string) => void;
   }
 
-  let { hand, selected, ontoggle }: Props = $props();
+  let { hand, selected, playable, ontoggle }: Props = $props();
 
-  const positions = $derived(fanLayout(hand.length));
+  const lefts = $derived(fanLayout(hand.length));
 </script>
 
 <div class="hand-fan">
   {#each hand as id, i (id)}
-    {@const pos = positions[i]}
+    {@const left = lefts[i]}
     {@const isSelected = selected.includes(id)}
-    {#if pos}
+    {#if left !== undefined}
       <button
         type="button"
         class="fan-slot"
-        style="left:{pos.left}px; top:{FAN_BASE_TOP}px; transform: rotate({pos.rotate}deg) translateY({isSelected
-          ? -20
-          : pos.top - FAN_BASE_TOP}px); z-index:{i + 1};"
+        class:hint={playable.has(id)}
+        style="left:{left}px; top:{FAN_BASE_TOP}px; transform: translateY({isSelected ? -20 : 0}px); z-index:{i + 1};"
         onclick={() => ontoggle(id)}
         aria-pressed={isSelected}
         aria-label="{isSelected ? 'Bỏ chọn' : 'Chọn'} lá {id}"
@@ -51,6 +52,11 @@
     pointer-events: auto;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    border-radius: 6px;
     transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  /* Playable cards are outlined, never dimmed: the hint adds, it does not take away. */
+  .fan-slot.hint {
+    box-shadow: 0 0 0 2px var(--gold), 0 0 10px rgba(212, 175, 55, 0.5);
   }
 </style>

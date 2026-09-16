@@ -20,6 +20,13 @@ function rankName(rank: number): string {
   return RANK_LABELS[rank - 3] ?? '?';
 }
 
+/** Inside a low straight the 2 counts as rank 2 and the A as rank 1. */
+function straightRankName(rank: number): string {
+  if (rank === 1) return 'A';
+  if (rank === 2) return '2';
+  return rankName(rank);
+}
+
 /** Vietnamese combo label for the action bar, e.g. "Đôi 9", "Sảnh 5-6-7", "Tứ quý K". */
 export function comboLabel(combo: Combo | null): string {
   if (!combo) return '';
@@ -35,7 +42,7 @@ export function comboLabel(combo: Combo | null): string {
     case 'straight': {
       const from = combo.rank - combo.length + 1;
       const ranks: string[] = [];
-      for (let r = from; r <= combo.rank; r++) ranks.push(rankName(r));
+      for (let r = from; r <= combo.rank; r++) ranks.push(straightRankName(r));
       return `Sảnh ${ranks.join('-')}`;
     }
   }

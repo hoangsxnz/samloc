@@ -1,8 +1,9 @@
-import { canBeat, parseCombo, rankOf, type Combo } from '@samloc/rules';
-import type { GameEvent } from '@samloc/worker/ws-types';
+import { canBeat, legalMoves, parseCombo, rankOf, type Combo } from '@samloc/rules';
 import { comboLabel } from '../../lib/card-view';
+import { orderHand, type HandSortMode } from '../../lib/hand-order';
 import { room } from '../../lib/room.svelte';
 import { seatsAfter } from '../../lib/table-layout';
+import { TagQueue, type Tag } from './table-tags.svelte';
 
 export interface Flight {
   id: number;
@@ -10,16 +11,7 @@ export interface Flight {
   cards: string[];
 }
 
-export interface Tag {
-  id: number;
-  seat: number;
-  text: string;
-  tone: 'gold' | 'danger' | 'warn' | 'info';
-}
-
-const TAG_TTL_MS = 1600;
 const TICK_MS = 250;
-const MAX_TAGS_PER_SEAT = 3;
 /** Slightly longer than the 260ms flight so the layer is never torn down mid-animation. */
 const FLIGHT_TTL_MS = 300;
 
@@ -27,37 +19,15 @@ function prefersReducedMotion(): boolean {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-function tagFor(event: GameEvent): { seat: number; text: string; tone: Tag['tone'] } | null {
-  switch (event.type) {
-    case 'chat2':
-      return event.chong
-        ? { seat: event.seat, text: `Chặt chồng +${event.amount}`, tone: 'gold' }
-        : { seat: event.seat, text: `Chặt 2 +${event.amount}`, tone: 'gold' };
-    case 'baoSam':
-      return { seat: event.seat, text: 'Báo Sâm!', tone: 'danger' };
-    case 'bao1':
-      return { seat: event.seat, text: 'Báo 1', tone: 'warn' };
-    case 'anTrang':
-      return { seat: event.seat, text: 'Ăn trắng', tone: 'info' };
-    case 'denBai':
-      return { seat: event.seat, text: 'Đền bài', tone: 'danger' };
-    default:
-      return null;
-  }
-}
-
 /** All derived table state and the tag queue; instantiated once inside table-screen.svelte's script. */
 export class TableLogic {
   selected = $state<string[]>([]);
-  tags = $state<Tag[]>([]);
+  sortMode = $state<HandSortMode>('rank');
   flight = $state<Flight | null>(null);
-  ariaLive = $state('');
+  readonly tagQueue = new TagQueue();
 
   #now = $state(Date.now());
-  #tagSeq = 0;
   #flightSeq = 0;
-  #seenEvents = new WeakSet<GameEvent>();
-  #tagTimers = new Map<number, ReturnType<typeof setTimeout>>();
   #lastTrickKey: string | null = null;
   #flightPrimed = false;
   #flightTimer: ReturnType<typeof setTimeout> | null = null;
@@ -66,14 +36,6 @@ export class TableLogic {
     $effect(() => {
       room.view;
       this.selected = [];
-    });
-
-    $effect(() => {
-      for (const event of room.events) {
-        if (this.#seenEvents.has(event)) continue;
-        this.#seenEvents.add(event);
-        this.#queueTag(event);
-      }
     });
 
     $effect(() => {
@@ -89,20 +51,31 @@ export class TableLogic {
     });
 
     $effect(() => () => {
-      for (const timer of this.#tagTimers.values()) clearTimeout(timer);
       if (this.#flightTimer) clearTimeout(this.#flightTimer);
     });
   }
 
   readonly isMyTurn = $derived(room.view !== null && room.view.turnSeat === room.view.youSeat);
 
+  /** Null once the trick is closed: its cards stay on the table but no longer have to be beaten. */
   readonly currentCombo: Combo | null = $derived.by(() => {
-    const trick = room.view?.trick;
-    const last = trick?.[trick.length - 1];
+    const view = room.view;
+    if (!view || view.trickClosed) return null;
+    const last = view.trick[view.trick.length - 1];
     return last ? parseCombo(last.cards) : null;
   });
 
   readonly combo: Combo | null = $derived.by(() => parseCombo(this.selected));
+
+  /** Hand in the player's chosen display order; the ids are what gets selected and sent. */
+  readonly orderedHand: string[] = $derived(orderHand(room.view?.hand ?? [], this.sortMode));
+
+  /** Every legal play, cheapest first — only on my turn, so nothing is highlighted off-turn. */
+  readonly moves: string[][] = $derived.by(() =>
+    this.isMyTurn ? legalMoves(room.view?.hand ?? [], this.currentCombo) : [],
+  );
+
+  readonly playableIds: Set<string> = $derived(new Set(this.moves.flat()));
 
   readonly canPlay = $derived(this.isMyTurn && this.combo !== null && canBeat(this.currentCombo, this.combo));
 
@@ -129,8 +102,27 @@ export class TableLogic {
     return rankOf(selectedId) < rankOf(highest);
   });
 
+  /**
+   * With an empty selection a tap on a highlighted card seeds the whole cheapest combo containing
+   * it — the tap is the hint. With a selection already up it is a plain per-card toggle, so a combo
+   * can still be refined by hand; tapping inside a seeded combo clears it.
+   */
   toggle(id: string): void {
-    this.selected = this.selected.includes(id) ? this.selected.filter((c) => c !== id) : [...this.selected, id];
+    if (this.selected.length === 0) {
+      const move = this.moves.find((m) => m.includes(id));
+      this.selected = move ? [...move] : [id];
+      return;
+    }
+    if (this.selected.includes(id)) {
+      const seeded = this.moves.some((m) => m.length === this.selected.length && m.every((c) => this.selected.includes(c)));
+      this.selected = seeded && this.selected.length > 1 ? [] : this.selected.filter((c) => c !== id);
+      return;
+    }
+    this.selected = [...this.selected, id];
+  }
+
+  toggleSort(): void {
+    this.sortMode = this.sortMode === 'rank' ? 'group' : 'rank';
   }
 
   play(): void {
@@ -142,32 +134,12 @@ export class TableLogic {
     room.pass();
   }
 
-  tagsFor(seat: number): Tag[] {
-    return this.tags.filter((t) => t.seat === seat);
+  get ariaLive(): string {
+    return this.tagQueue.ariaLive;
   }
 
-  #queueTag(event: GameEvent): void {
-    const mapped = tagFor(event);
-    if (!mapped) return;
-    this.ariaLive = mapped.text;
-    const id = ++this.#tagSeq;
-    let next = [...this.tags, { id, seat: mapped.seat, text: mapped.text, tone: mapped.tone }];
-    const seatTags = this.tags.filter((t) => t.seat === mapped.seat);
-    if (seatTags.length >= MAX_TAGS_PER_SEAT) {
-      const oldest = seatTags[0];
-      if (oldest) {
-        next = next.filter((t) => t.id !== oldest.id);
-        this.#clearTagTimer(oldest.id);
-      }
-    }
-    this.tags = next;
-    this.#tagTimers.set(
-      id,
-      setTimeout(() => {
-        this.tags = this.tags.filter((t) => t.id !== id);
-        this.#tagTimers.delete(id);
-      }, TAG_TTL_MS),
-    );
+  tagsFor(seat: number): Tag[] {
+    return this.tagQueue.for(seat);
   }
 
   /**
@@ -193,11 +165,5 @@ export class TableLogic {
       this.flight = null;
       this.#flightTimer = null;
     }, FLIGHT_TTL_MS);
-  }
-
-  #clearTagTimer(id: number): void {
-    const timer = this.#tagTimers.get(id);
-    if (timer) clearTimeout(timer);
-    this.#tagTimers.delete(id);
   }
 }

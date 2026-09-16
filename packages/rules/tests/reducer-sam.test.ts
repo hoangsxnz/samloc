@@ -50,6 +50,16 @@ describe('báo sâm', () => {
     expect(res.events).toContainEqual({ type: 'handEnd', winnerSeat: 1 });
   });
 
+  it('a non-declarer who times out auto-plays and blocks the sâm', () => {
+    let s = makeState([['5S', '9S'], ['3S', '4S']], SAM_WINDOW);
+    s = step(s, { type: 'declareSam', seat: 1 }).state;
+    s = play(s, 1, ['3S']).state;
+    const res = step(s, { type: 'timeout', seat: 0 });
+    expect(res.state.samResult).toBe('fail');
+    expect(res.state.blockerSeat).toBe(0);
+    expect(res.state.phase).toBe('ended');
+  });
+
   it('sâm fails the moment any play is beaten and the hand ends', () => {
     let s = makeState([['5S', '9S'], ['3S', '4S']], SAM_WINDOW);
     s = step(s, { type: 'declareSam', seat: 1 }).state;
