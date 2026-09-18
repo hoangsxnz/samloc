@@ -7,7 +7,8 @@ import { parseAvatarBytes, parseDisplayName } from './validation';
 export const profileRoutes = new Hono<{ Bindings: Env; Variables: AuthedVariables }>();
 
 interface AvatarRow {
-  avatar_blob: ArrayBuffer | null;
+  /** D1 hands a BLOB back as a plain byte array, not an ArrayBuffer. */
+  avatar_blob: number[] | null;
   avatar_ver: number | null;
 }
 
@@ -46,7 +47,7 @@ profileRoutes.get('/avatars/:userId', async (c) => {
     .bind(c.req.param('userId'))
     .first<AvatarRow>();
   if (!row?.avatar_blob) return c.json({ error: 'Không có ảnh' }, 404);
-  return new Response(row.avatar_blob, {
+  return new Response(new Uint8Array(row.avatar_blob), {
     headers: { 'content-type': 'image/jpeg', 'cache-control': 'private, max-age=31536000, immutable' },
   });
 });

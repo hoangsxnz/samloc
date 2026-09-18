@@ -1,5 +1,8 @@
-/** Box the played combos land in, in design-frame px, centred on `CENTRE_POINT`. */
-export const SCATTER_BOX = { width: 120, height: 60 };
+/**
+ * Box the played combos land in, in design-frame px, centred on `CENTRE_POINT`. The height keeps a
+ * 62 px card row clear of the top seats' count row, which ends near y 143.
+ */
+export const SCATTER_BOX = { width: 120, height: 40 };
 export const SCATTER_MAX_ROT = 12;
 
 export interface Scatter {

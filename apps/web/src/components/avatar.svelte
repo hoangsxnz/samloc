@@ -10,16 +10,16 @@
 
   let { name, userId, avatarVer, size = 40 }: Props = $props();
 
-  /* A failed image (row deleted, stale version) falls back to the initial for this mount. */
-  let broken = $state(false);
+  /* A version that failed to load falls back to the initial; a newer upload gets a fresh try. */
+  let brokenVer = $state<number | null>(null);
 
   const initial = $derived(name.trim().charAt(0).toUpperCase() || '?');
-  const showImage = $derived(avatarVer !== null && !broken);
+  const showImage = $derived(avatarVer !== null && avatarVer !== brokenVer);
 </script>
 
 <span class="avatar" style="width:{size}px; height:{size}px; font-size:{Math.round(size * 0.4)}px">
   {#if showImage}
-    <img class="avatar-img" src={avatarUrl(userId, avatarVer ?? 0)} alt="" draggable="false" onerror={() => (broken = true)} />
+    <img class="avatar-img" src={avatarUrl(userId, avatarVer ?? 0)} alt="" draggable="false" onerror={() => (brokenVer = avatarVer)} />
   {:else}
     <span class="avatar-initial">{initial}</span>
   {/if}
