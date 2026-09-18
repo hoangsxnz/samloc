@@ -122,6 +122,12 @@
     align-items: center;
     gap: var(--sp-3);
   }
+  /* Buttons keep their natural width (the shared .btn is 100% wide) so the status gets the rest. */
+  .result-foot :global(.btn) {
+    width: auto;
+    padding: 0 var(--sp-4);
+    flex-shrink: 0;
+  }
   /* One horizontal line: the status used to stack vertically when squeezed as a narrow flex item. */
   .result-status {
     flex: 1 1 auto;
@@ -134,6 +140,11 @@
     font-size: var(--fs-xs);
     color: var(--text-muted);
     margin: 0;
+  }
+  .result-status span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .result-chip {
     position: fixed;
