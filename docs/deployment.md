@@ -6,13 +6,13 @@ Target: one Worker serving the static Svelte build (Workers Static Assets) + `/a
 ## Resources (all free tier)
 - Worker `samloc` — `assets` (`../web/dist/client`, SPA fallback, `run_worker_first: ["/api/*", "/ws/*"]`),
   `durable_objects.bindings` `ROOM → RoomDO`, `d1_databases` `DB → samloc-db`.
-- D1 `samloc-db` — `users`, `sessions`, `room_sessions`, `hand_results` (`apps/worker/migrations/`).
+- D1 `samloc-db` — `users` (with `avatar_blob` / `avatar_ver`), `sessions`, `room_sessions`, `hand_results`, `coin_grants` (`apps/worker/migrations/`).
 - Durable Object class `RoomDO` (SQLite-backed, `new_sqlite_classes` migration `v1`).
 
 ## Steps
 1. `pnpm --filter @samloc/worker exec wrangler login` (browser, no card).
 2. `pnpm --filter @samloc/worker exec wrangler d1 create samloc-db` → paste the `database_id` into `wrangler.jsonc`.
-3. `pnpm --filter @samloc/worker exec wrangler d1 migrations apply samloc-db --remote`.
+3. `pnpm --filter @samloc/worker exec wrangler d1 migrations apply samloc-db --remote` — run again before every deploy that adds a migration; `0002_profile_avatar.sql` and `0003_coin_grants.sql` must be applied remotely before deploying the profile / rewards round.
 4. `pnpm run deploy` — builds `apps/web` then runs `wrangler deploy` against the config Vite emitted
    at `apps/web/dist/samloc/wrangler.json` (the Cloudflare Vite plugin resolves the Worker bundle,
    the assets directory and the bindings there).

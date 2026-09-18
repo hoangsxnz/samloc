@@ -1,5 +1,32 @@
 # Project Changelog — Sâm Lốc Online
 
+## 2026-09-19
+
+### Features
+
+#### Sound cues and a mute toggle
+- Six Web Audio cues derived from snapshot transitions: `shuffle` (hand start), `play` (new trick entry), `join` (another seat appears), `turn` (my turn), `win` / `lose` (hand end; spectators silent); nothing plays on the first snapshot after connecting
+- Audio unlocks on the first pointerdown; "Âm thanh: Bật/Tắt" in the table ≡ menu, persisted in `localStorage` `samloc.sound`
+- Clips are `apps/web/public/sounds/<key>.mp3` (not in the repo yet — see the plan for the sources); a missing file leaves that cue silent
+- Result modal shows "Mừng cậu chủ thắng lớn 💕" on the winner's screen (`result-head.svelte` split out of the modal)
+
+#### Profile: nickname and uploaded avatar
+- Home screen after login (`#/home`): avatar, name, budget, "Chơi ngay" / "Hồ sơ"; lobby gains a ⌂ button
+- Profile screen (`#/profile`): rename (`PATCH /api/me`) and upload a photo — the browser centre-crops and re-encodes to a 128×128 JPEG ≤ 64 KB, `PUT /api/me/avatar` stores it as a D1 BLOB, `GET /api/avatars/:userId?v=` serves it immutable
+- `SeatView.avatarVer` travels through the WS upgrade (`x-avatar-ver`) and DO seats so every seat, waiting row, me-chip, result row and winner pill shows the photo (initial fallback)
+- Migration `0002_profile_avatar.sql`
+
+#### Daily check-in and lucky wheel
+- `POST /api/checkin` +1.000 đ once a day (UTC+7), `POST /api/spin` up to 5 times a day with server-side weighted wedges 200 / 400 / 600 / 1.000 / 2.000 / 4.000 / 10.000 / "Chúc may mắn" (30/22/16/13/9/5/2/3 %); limits enforced in the database (partial unique index, cap inside the INSERT)
+- Grants live in the new `coin_grants` table and are folded into `budgetFor()`, so the budget stays derived
+- Home shows the check-in card and a wheel launcher; the SVG wheel spins ≥ 5 turns for 4 s to the server-chosen wedge
+- Migration `0003_coin_grants.sql`
+
+### Table fixes
+- Báo 1 is an 18 px red badge on the opponent avatar (no pill, no floating tag; aria-live still announces it)
+- 4-player tables seat opponents left / top-centre / right; side seats moved to y 148
+- Played combos rest on a deterministic scattered spot (120×40 box, ±12°) hashed from seat + cards; the play animation lands on the same spot
+
 ## 2026-09-15
 
 ### Rules
