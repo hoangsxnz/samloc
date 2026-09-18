@@ -1,5 +1,7 @@
 import type { EmojiKey, GameEvent, RoomSettings, RoomView } from '@samloc/worker/ws-types';
 import { go } from './router.svelte';
+import { sound } from './sound.svelte';
+import { soundCuesFor } from './sound-cues';
 import { WsClient } from './ws-client.svelte';
 
 const MAX_EVENTS = 10;
@@ -24,8 +26,12 @@ class RoomStore {
   #reactionTimers = new Map<number, ReturnType<typeof setTimeout>>();
 
   constructor() {
+    // Cues compare against the last seen snapshot only: nothing plays on the first one after
+    // connect(), so a reload or a route change never replays what already happened.
     this.ws.onSnapshot = (view) => {
+      const prev = this.view;
       this.view = view;
+      if (prev) for (const key of soundCuesFor(prev, view)) sound.play(key);
     };
     this.ws.onEvent = (event) => {
       this.events = [...this.events, event].slice(-MAX_EVENTS);

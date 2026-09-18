@@ -65,7 +65,7 @@
 
   {#if view.status === 'hand-end' && view.result}
     {#if resultVisible}
-      <HandResultModal result={view.result} seats={view.seats} youAreHost={view.youAreHost} />
+      <HandResultModal result={view.result} seats={view.seats} youSeat={view.youSeat} youAreHost={view.youAreHost} />
     {:else}
       <button type="button" class="result-skip" aria-label="Xem kết quả" onclick={() => (resultVisible = true)}
       ></button>

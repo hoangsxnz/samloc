@@ -5,6 +5,7 @@
   import { requestLandscapeLockOnce } from './lib/orientation.svelte';
   import { go, initRouter, route } from './lib/router.svelte';
   import { bootstrap, session } from './lib/session.svelte';
+  import { sound } from './lib/sound.svelte';
   import LobbyScreen from './screens/lobby-screen.svelte';
   import LoginScreen from './screens/login-screen.svelte';
   import TableScreen from './screens/table/table-screen.svelte';
@@ -14,6 +15,7 @@
     initRouter();
     void bootstrap();
     document.addEventListener('pointerdown', requestLandscapeLockOnce, { once: true });
+    document.addEventListener('pointerdown', () => sound.unlock(), { once: true });
   });
 
   $effect(() => {

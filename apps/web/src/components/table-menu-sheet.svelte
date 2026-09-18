@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { RoomStatus } from '@samloc/worker/ws-types';
   import { room } from '../lib/room.svelte';
+  import { sound } from '../lib/sound.svelte';
   import { FELT_ORDER, FELT_PRESETS, tableTheme } from '../lib/table-theme.svelte';
   import ConfirmDialog from './confirm-dialog.svelte';
 
@@ -38,6 +39,9 @@
         ></button>
       {/each}
     </div>
+    <button type="button" class="btn btn-secondary" aria-pressed={sound.enabled} onclick={() => sound.set(!sound.enabled)}>
+      {sound.enabled ? 'Âm thanh: Bật' : 'Âm thanh: Tắt'}
+    </button>
     <button type="button" class="btn btn-danger" onclick={requestLeave}>Rời phòng</button>
   </div>
 </div>
