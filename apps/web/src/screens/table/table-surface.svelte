@@ -95,6 +95,8 @@
   {#if mySeat}
     <MeChip
       name={mySeat.name}
+      userId={mySeat.userId}
+      avatarVer={mySeat.avatarVer}
       money={mySeat.money}
       isMyTurn={logic.isMyTurn}
       remain={logic.remain}

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { SeatView } from '@samloc/worker/ws-types';
+  import Avatar from './avatar.svelte';
 
   interface Props {
     seat: SeatView | null;
@@ -7,15 +8,11 @@
   }
 
   let { seat, isMe }: Props = $props();
-
-  function initial(name: string): string {
-    return name.trim().charAt(0).toUpperCase() || '?';
-  }
 </script>
 
 {#if seat}
   <div class="seat" class:me={isMe}>
-    <div class="seat-avatar">{initial(seat.name)}</div>
+    <div class="seat-avatar"><Avatar name={seat.name} userId={seat.userId} avatarVer={seat.avatarVer} size={36} /></div>
     <div class="seat-name">
       {seat.name}
       {#if seat.isHost}<span class="seat-crown" aria-hidden="true">♛</span>{/if}

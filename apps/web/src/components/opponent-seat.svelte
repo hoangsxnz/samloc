@@ -2,6 +2,7 @@
   import type { SeatView } from '@samloc/worker/ws-types';
   import { formatMoney } from '../lib/format-money';
   import type { Reaction } from '../lib/room.svelte';
+  import Avatar from './avatar.svelte';
   import EmojiBubble from './emoji-bubble.svelte';
   import EventTag from './event-tag.svelte';
   import TimerRing from './timer-ring.svelte';
@@ -18,10 +19,6 @@
 
   let { seat, pos, active, remain, turnSeconds, tags, reactions }: Props = $props();
 
-  function initial(name: string): string {
-    return name.trim().charAt(0).toUpperCase() || '?';
-  }
-
   const displayName = $derived(seat.name.length > 8 ? `${seat.name.slice(0, 8)}…` : seat.name);
   const posStyle = $derived(
     `top:${pos.top}px;${pos.left !== undefined ? `left:${pos.left}px;` : ''}${pos.right !== undefined ? `right:${pos.right}px;` : ''}`,
@@ -35,7 +32,9 @@
   </div>
   <!-- On the active seat the countdown replaces the initial and the arc wraps the avatar. -->
   <div class="opp-avatar-wrap">
-    <div class="opp-avatar" class:active class:danger>{active ? Math.ceil(remain) : initial(seat.name)}</div>
+    <div class="opp-avatar" class:active class:danger>
+      {#if active}{Math.ceil(remain)}{:else}<Avatar name={seat.name} userId={seat.userId} avatarVer={seat.avatarVer} size={36} />{/if}
+    </div>
     {#if active}
       <div class="opp-ring"><TimerRing {remain} {turnSeconds} size={48} stroke={3} digits={false} /></div>
     {/if}

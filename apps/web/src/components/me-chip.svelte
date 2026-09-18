@@ -1,12 +1,15 @@
 <script lang="ts">
   import { formatMoney } from '../lib/format-money';
   import type { Reaction } from '../lib/room.svelte';
+  import Avatar from './avatar.svelte';
   import EmojiBubble from './emoji-bubble.svelte';
   import EventTag from './event-tag.svelte';
   import TimerRing from './timer-ring.svelte';
 
   interface Props {
     name: string;
+    userId: string;
+    avatarVer: number | null;
     money: number;
     isMyTurn: boolean;
     remain: number;
@@ -17,11 +20,8 @@
     reactions: Reaction[];
   }
 
-  let { name, money, isMyTurn, remain, turnSeconds, invalidReason, denWarn, tags, reactions }: Props = $props();
-
-  function initial(value: string): string {
-    return value.trim().charAt(0).toUpperCase() || '?';
-  }
+  let { name, userId, avatarVer, money, isMyTurn, remain, turnSeconds, invalidReason, denWarn, tags, reactions }: Props =
+    $props();
 
   const subLine = $derived(invalidReason ?? (denWarn ? 'Có thể phải đền bài' : null));
   const danger = $derived(isMyTurn && remain < 5);
@@ -35,7 +35,7 @@
        matching the opponent seats and keeping the chip narrow enough for the fan. -->
   <div class="me-avatar-wrap">
     <div class="me-avatar" class:active={isMyTurn} class:danger>
-      {isMyTurn ? Math.ceil(remain) : initial(name)}
+      {#if isMyTurn}{Math.ceil(remain)}{:else}<Avatar {name} {userId} {avatarVer} size={36} />{/if}
     </div>
     {#if isMyTurn}
       <div class="me-ring"><TimerRing {remain} {turnSeconds} size={48} stroke={3} digits={false} /></div>

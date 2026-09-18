@@ -1,22 +1,21 @@
 <script lang="ts">
   import type { ResultRow } from '@samloc/worker/ws-types';
+  import Avatar from '../../components/avatar.svelte';
   import PlayingCard from '../../components/playing-card.svelte';
   import { formatMoney, formatMoneyDelta } from '../../lib/format-money';
 
   interface Props {
     row: ResultRow;
     isWinner: boolean;
+    userId: string;
+    avatarVer: number | null;
   }
 
-  let { row, isWinner }: Props = $props();
-
-  function initial(name: string): string {
-    return name.trim().charAt(0).toUpperCase() || '?';
-  }
+  let { row, isWinner, userId, avatarVer }: Props = $props();
 </script>
 
 <div class="result-row">
-  <span class="result-av">{initial(row.name)}</span>
+  <span class="result-av"><Avatar name={row.name} {userId} {avatarVer} size={24} /></span>
   <div class="result-name">
     {row.name}
     {#if row.cong}<i>Cóng</i>{/if}

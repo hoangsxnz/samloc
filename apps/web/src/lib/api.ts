@@ -2,6 +2,7 @@ export interface AuthUser {
   id: string;
   username: string;
   displayName: string;
+  avatarVer: number | null;
   budget: number;
 }
 
@@ -77,4 +78,15 @@ export const api = {
     }),
 
   findRoom: (code: string) => req<RoomLookup>(`/api/rooms/${code}`),
+
+  updateProfile: (input: { displayName: string }) =>
+    req<AuthUser>('/api/me', { method: 'PATCH', body: JSON.stringify(input) }),
+
+  uploadAvatar: (blob: Blob) =>
+    req<{ avatarVer: number }>('/api/me/avatar', { method: 'PUT', headers: { 'content-type': 'image/jpeg' }, body: blob }),
 };
+
+/** Versioned so the immutable cache never shows a stale photo. */
+export function avatarUrl(userId: string, avatarVer: number): string {
+  return `/api/avatars/${userId}?v=${avatarVer}`;
+}

@@ -5,6 +5,7 @@
   import { go } from '../lib/router.svelte';
   import { session, setUser } from '../lib/session.svelte';
   import AppButton from '../components/app-button.svelte';
+  import Avatar from '../components/avatar.svelte';
   import CodeInput from '../components/code-input.svelte';
   import LobbyCreateRoom from './lobby-create-room.svelte';
   import LobbyRecentSessions from './lobby-recent-sessions.svelte';
@@ -46,9 +47,12 @@
 
 <div class="screen lobby-screen">
   <header class="lobby-header">
-    <div class="lobby-avatar">{(session.user?.displayName ?? '?').charAt(0).toUpperCase()}</div>
+    <div class="lobby-avatar">
+      <Avatar name={session.user?.displayName ?? '?'} userId={session.user?.id ?? ''} avatarVer={session.user?.avatarVer ?? null} size={32} />
+    </div>
     <span class="lobby-name">{session.user?.displayName}</span>
     <span class="chip lobby-chip">Ngân sách: {formatMoney(session.user?.budget ?? 0)}</span>
+    <button class="icon-btn" type="button" aria-label="Trang chủ" onclick={() => go('#/home')}>⌂</button>
     <button class="icon-btn" type="button" aria-label="Đăng xuất" onclick={logout}>⏻</button>
   </header>
 

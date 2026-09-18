@@ -1,25 +1,25 @@
 <script lang="ts">
-  import type { HandResult } from '@samloc/worker/ws-types';
+  import type { HandResult, SeatView } from '@samloc/worker/ws-types';
+  import Avatar from '../../components/avatar.svelte';
 
   interface Props {
     result: HandResult;
-    winnerName: string;
+    /** Null when the winning seat has already left the room. */
+    winner: SeatView | null;
     youWon: boolean;
   }
 
-  let { result, winnerName, youWon }: Props = $props();
-
-  function initial(name: string): string {
-    return name.trim().charAt(0).toUpperCase() || '?';
-  }
+  let { result, winner, youWon }: Props = $props();
 </script>
 
 <header class="result-head">
   <h1 id="result-title">{result.kind === 'normal' ? `Kết quả ván ${result.handNo}` : result.headline}</h1>
   {#if result.winnerSeat !== null}
     <div class="result-winner">
-      <span class="result-winner-av">{initial(winnerName)}</span>
-      <b>{winnerName} thắng</b>
+      <span class="result-winner-av">
+        <Avatar name={winner?.name ?? ''} userId={winner?.userId ?? ''} avatarVer={winner?.avatarVer ?? null} size={28} />
+      </span>
+      <b>{winner?.name ?? ''} thắng</b>
     </div>
   {/if}
   {#if youWon}<p class="result-celebrate">Mừng cậu chủ thắng lớn 💕</p>{/if}
@@ -47,16 +47,9 @@
     padding: 3px 12px 3px 4px;
   }
   .result-winner-av {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--gold);
-    color: var(--on-gold);
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
   }
   .result-winner b {
     font-size: 14px;

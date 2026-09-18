@@ -6,8 +6,10 @@
   import { go, initRouter, route } from './lib/router.svelte';
   import { bootstrap, session } from './lib/session.svelte';
   import { sound } from './lib/sound.svelte';
+  import HomeScreen from './screens/home-screen.svelte';
   import LobbyScreen from './screens/lobby-screen.svelte';
   import LoginScreen from './screens/login-screen.svelte';
+  import ProfileScreen from './screens/profile-screen.svelte';
   import TableScreen from './screens/table/table-screen.svelte';
   import WaitingScreen from './screens/waiting-screen.svelte';
 
@@ -19,14 +21,14 @@
   });
 
   $effect(() => {
-    if (route.name === 'lobby' || route.name === 'login') room.disconnect();
+    if (route.name !== 'room' && route.name !== 'table') room.disconnect();
   });
 
   $effect(() => {
     if (session.loading) return;
     const isAuthed = !!session.user;
     if (!isAuthed && route.name !== 'login') go('#/login');
-    else if (isAuthed && route.name === 'login') go('#/lobby');
+    else if (isAuthed && route.name === 'login') go('#/home');
   });
 
   const showReconnectBanner = $derived(
@@ -53,6 +55,10 @@
   </div>
 {:else if route.name === 'login'}
   <LoginScreen />
+{:else if route.name === 'home'}
+  <HomeScreen />
+{:else if route.name === 'profile'}
+  <ProfileScreen />
 {:else if route.name === 'lobby'}
   <LobbyScreen />
 {:else if route.name === 'room'}

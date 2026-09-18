@@ -18,9 +18,7 @@
   let collapsed = $state(false);
   let showSessionBoard = $state(false);
 
-  const winnerName = $derived(
-    result.winnerSeat !== null ? (seats.find((s) => s.seat === result.winnerSeat)?.name ?? '') : '',
-  );
+  const winner = $derived(seats.find((s) => s.seat === result.winnerSeat) ?? null);
   const nextLeadName = $derived(seats.find((s) => s.seat === result.nextLeadSeat)?.name ?? '');
 
   function tapScrim(): void {
@@ -34,11 +32,12 @@
   <div class="result-overlay">
     <button type="button" class="scrim-backdrop" aria-label="Xem lại bàn chơi" onclick={tapScrim}></button>
     <div class="panel result-modal" role="dialog" aria-modal="true" aria-labelledby="result-title">
-      <ResultHead {result} {winnerName} youWon={result.winnerSeat === youSeat} />
+      <ResultHead {result} {winner} youWon={result.winnerSeat === youSeat} />
 
       <div class="result-grid">
         {#each result.rows as row (row.seat)}
-          <ResultRow {row} isWinner={row.seat === result.winnerSeat} />
+          {@const seat = seats.find((s) => s.seat === row.seat)}
+          <ResultRow {row} isWinner={row.seat === result.winnerSeat} userId={seat?.userId ?? ''} avatarVer={seat?.avatarVer ?? null} />
         {/each}
       </div>
 

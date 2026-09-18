@@ -51,7 +51,7 @@
           ? await api.login({ username, password })
           : await api.register({ username, displayName: displayName.trim(), password });
       setUser(user);
-      go('#/lobby');
+      go('#/home');
     } catch (err) {
       error = err instanceof ApiError ? err.message : 'Không thể kết nối máy chủ';
     } finally {
