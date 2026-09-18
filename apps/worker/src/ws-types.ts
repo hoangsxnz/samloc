@@ -34,6 +34,8 @@ export interface SeatView {
   totalLa: number;
   /** Money balance in đồng: the seat's starting budget plus `totalLa` × `stakePerLa`. */
   money: number;
+  /** Null without an avatar; a bump forces the client to refetch `/api/avatars/:userId`. */
+  avatarVer: number | null;
 }
 
 export interface TrickEntry {

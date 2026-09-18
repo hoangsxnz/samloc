@@ -17,9 +17,9 @@ const room: RoomRow = {
 };
 
 const seats: SeatRow[] = [
-  { seat: 0, user_id: 'u0', display_name: 'An', ready: 0, connected: 0, total_la: 5, budget_base: 10_000 },
-  { seat: 1, user_id: 'u1', display_name: 'Bình', ready: 0, connected: 1, total_la: -5, budget_base: 9_000 },
-  { seat: 2, user_id: 'u2', display_name: 'Chi', ready: 0, connected: 1, total_la: 0, budget_base: 12_000 },
+  { seat: 0, user_id: 'u0', display_name: 'An', ready: 0, connected: 0, total_la: 5, budget_base: 10_000, avatar_ver: null },
+  { seat: 1, user_id: 'u1', display_name: 'Bình', ready: 0, connected: 1, total_la: -5, budget_base: 9_000, avatar_ver: 1_700_000 },
+  { seat: 2, user_id: 'u2', display_name: 'Chi', ready: 0, connected: 1, total_la: 0, budget_base: 12_000, avatar_ver: null },
 ];
 
 const hands = [
@@ -79,8 +79,12 @@ describe('buildView', () => {
     expect(view.seats.map((s) => s.money)).toEqual([10_500, 8_500, 12_000]);
   });
 
+  it('carries each seat\'s avatar version', () => {
+    expect(view.seats.map((s) => s.avatarVer)).toEqual([null, 1_700_000, null]);
+  });
+
   it('renders a seat that joined mid-hand with no cards', () => {
-    const late: SeatRow = { seat: 3, user_id: 'u3', display_name: 'Dũng', ready: 1, connected: 1, total_la: 0, budget_base: 10_000 };
+    const late: SeatRow = { seat: 3, user_id: 'u3', display_name: 'Dũng', ready: 1, connected: 1, total_la: 0, budget_base: 10_000, avatar_ver: null };
     const withLate = buildView(room, [...seats, late], state, null, [], 'u3');
     expect(withLate.youSeat).toBe(3);
     expect(withLate.hand).toEqual([]);

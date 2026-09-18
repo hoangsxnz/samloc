@@ -49,6 +49,7 @@ export function buildView(
       bao1: state?.bao1Seats.includes(s.seat) ?? false,
       totalLa: s.total_la,
       money: s.budget_base + s.total_la * room.stake_per_la,
+      avatarVer: s.avatar_ver,
     };
   });
   const ownHand = youSeat >= 0 ? (state?.players[youSeat]?.hand ?? []) : [];

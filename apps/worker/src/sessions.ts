@@ -9,6 +9,8 @@ export interface SessionUser {
   id: string;
   username: string;
   displayName: string;
+  /** Bumped on every upload; null until the user has an avatar. */
+  avatarVer: number | null;
 }
 
 export async function createSession(db: D1Database, userId: string): Promise<string> {
@@ -24,7 +26,7 @@ export async function createSession(db: D1Database, userId: string): Promise<str
 export async function getSessionUser(db: D1Database, sessionId: string): Promise<SessionUser | null> {
   const row = await db
     .prepare(
-      `SELECT u.id AS id, u.username AS username, u.display_name AS displayName
+      `SELECT u.id AS id, u.username AS username, u.display_name AS displayName, u.avatar_ver AS avatarVer
        FROM sessions s JOIN users u ON u.id = s.user_id
        WHERE s.id = ? AND s.expires_at > ?`,
     )

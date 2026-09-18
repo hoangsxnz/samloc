@@ -27,10 +27,12 @@ export interface SeatRow {
   total_la: number;
   /** Money balance when the seat was created; displayed money adds total_la × stake. */
   budget_base: number;
+  /** Copied from D1 on join and rejoin; the client refetches the image when it changes. */
+  avatar_ver: number | null;
 }
 
 type RoomPatch = Partial<Omit<RoomRow, 'code'>>;
-type SeatPatch = Partial<Pick<SeatRow, 'ready' | 'connected' | 'display_name'>>;
+type SeatPatch = Partial<Pick<SeatRow, 'ready' | 'connected' | 'display_name' | 'avatar_ver'>>;
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS room (
@@ -42,7 +44,7 @@ CREATE TABLE IF NOT EXISTS room (
 CREATE TABLE IF NOT EXISTS seats (
   seat INTEGER PRIMARY KEY, user_id TEXT NOT NULL UNIQUE, display_name TEXT NOT NULL,
   ready INTEGER NOT NULL DEFAULT 0, connected INTEGER NOT NULL DEFAULT 0,
-  total_la INTEGER NOT NULL DEFAULT 0, budget_base INTEGER NOT NULL DEFAULT 0
+  total_la INTEGER NOT NULL DEFAULT 0, budget_base INTEGER NOT NULL DEFAULT 0, avatar_ver INTEGER
 );`;
 
 /** Typed wrappers over the Durable Object's SQLite storage; the only place that writes SQL. */
@@ -55,6 +57,11 @@ export class RoomStore {
     // SQLite has no ADD COLUMN IF NOT EXISTS; a duplicate-column error here is the expected no-op.
     try {
       this.sql.exec('ALTER TABLE seats ADD COLUMN budget_base INTEGER NOT NULL DEFAULT 0');
+    } catch {
+      // Column already present.
+    }
+    try {
+      this.sql.exec('ALTER TABLE seats ADD COLUMN avatar_ver INTEGER');
     } catch {
       // Column already present.
     }
@@ -99,15 +106,17 @@ export class RoomStore {
    * Appends after the highest seat so a vacated number is never reused mid-session; the next deal
    * re-packs. New seats are ready by default — the waiting screen can still un-ready deliberately.
    */
-  addSeat(userId: string, displayName: string, budgetBase: number): SeatRow {
+  addSeat(userId: string, displayName: string, budgetBase: number, avatarVer: number | null): SeatRow {
     const seats = this.listSeats();
     const seat = seats.length === 0 ? 0 : (seats[seats.length - 1]?.seat ?? -1) + 1;
     this.sql.exec(
-      'INSERT INTO seats (seat, user_id, display_name, ready, connected, budget_base) VALUES (?, ?, ?, 1, 1, ?)',
+      `INSERT INTO seats (seat, user_id, display_name, ready, connected, budget_base, avatar_ver)
+       VALUES (?, ?, ?, 1, 1, ?, ?)`,
       seat,
       userId,
       displayName,
       budgetBase,
+      avatarVer,
     );
     return {
       seat,
@@ -117,6 +126,7 @@ export class RoomStore {
       connected: 1,
       total_la: 0,
       budget_base: budgetBase,
+      avatar_ver: avatarVer,
     };
   }
 

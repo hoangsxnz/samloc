@@ -13,6 +13,19 @@ interface UserRow {
   display_name: string;
   password_hash: string;
   password_salt: string;
+  avatar_ver: number | null;
+}
+
+interface UserFields {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarVer: number | null;
+}
+
+/** The `AuthUser` wire shape, shared by register, login, me and the profile routes. */
+export function userJson(user: UserFields, budget: number): UserFields & { budget: number } {
+  return { id: user.id, username: user.username, displayName: user.displayName, avatarVer: user.avatarVer, budget };
 }
 
 authRoutes.post('/register', async (c) => {
@@ -45,7 +58,9 @@ authRoutes.post('/register', async (c) => {
 
   const sessionId = await createSession(c.env.DB, id);
   setSessionCookie(c, sessionId);
-  return c.json({ id, username: usernameResult.value, displayName: displayNameResult.value, budget: STARTING_BUDGET });
+  return c.json(
+    userJson({ id, username: usernameResult.value, displayName: displayNameResult.value, avatarVer: null }, STARTING_BUDGET),
+  );
 });
 
 authRoutes.post('/login', async (c) => {
@@ -71,7 +86,9 @@ authRoutes.post('/login', async (c) => {
   const sessionId = await createSession(c.env.DB, user.id);
   setSessionCookie(c, sessionId);
   const budget = await budgetFor(c.env.DB, user.id);
-  return c.json({ id: user.id, username: user.username, displayName: user.display_name, budget });
+  return c.json(
+    userJson({ id: user.id, username: user.username, displayName: user.display_name, avatarVer: user.avatar_ver }, budget),
+  );
 });
 
 authRoutes.post('/logout', async (c) => {
@@ -84,5 +101,5 @@ authRoutes.post('/logout', async (c) => {
 authRoutes.get('/me', async (c) => {
   const user = c.var.user;
   const budget = await budgetFor(c.env.DB, user.id);
-  return c.json({ id: user.id, username: user.username, displayName: user.displayName, budget });
+  return c.json(userJson(user, budget));
 });

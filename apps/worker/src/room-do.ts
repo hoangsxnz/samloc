@@ -51,6 +51,8 @@ export class RoomDO extends DurableObject<Env> implements RoomHost {
     if (!userId || !rawName || !code) return new Response('Missing identity', { status: 400 });
     const name = decodeURIComponent(rawName);
     const budget = Number(request.headers.get('x-budget') ?? 0);
+    const rawAvatarVer = request.headers.get('x-avatar-ver');
+    const avatarVer = rawAvatarVer ? Number(rawAvatarVer) : null;
     this.store.ensureSchema();
     this.store.seedRoom(code, {
       maxPlayers: Number(request.headers.get('x-max-players') ?? 4),
@@ -60,7 +62,7 @@ export class RoomDO extends DurableObject<Env> implements RoomHost {
     const pair = new WebSocketPair();
     const server = pair[1];
     this.ctx.acceptWebSocket(server, [userId]);
-    server.serializeAttachment({ userId, name, budget } satisfies Who);
+    server.serializeAttachment({ userId, name, budget, avatarVer } satisfies Who);
     return new Response(null, { status: 101, webSocket: pair[0] });
   }
 

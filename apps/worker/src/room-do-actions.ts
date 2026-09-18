@@ -9,6 +9,8 @@ export interface Who {
   name: string;
   /** D1 money balance at socket-upgrade time. Absent on a socket accepted before this shipped. */
   budget?: number;
+  /** Avatar version at socket-upgrade time; null without an avatar, absent on older sockets. */
+  avatarVer?: number | null;
 }
 
 const MIN_PLAYERS = 2;
@@ -80,11 +82,11 @@ function handleJoin(
   seq: number,
 ): void {
   if (mine) {
-    host.store.setSeat(mine.seat, { connected: 1, display_name: who.name });
+    host.store.setSeat(mine.seat, { connected: 1, display_name: who.name, avatar_ver: who.avatarVer ?? null });
   } else {
     // A player may join while a hand is running: they spectate it and are dealt in on the next one.
     if (seats.length >= room.max_players) return fail(host, ws, seq, 'Phòng đã đầy');
-    host.store.addSeat(who.userId, who.name, who.budget ?? 0);
+    host.store.addSeat(who.userId, who.name, who.budget ?? 0, who.avatarVer ?? null);
   }
   host.snapshotAll(seq, ws);
 }

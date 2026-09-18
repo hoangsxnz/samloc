@@ -41,6 +41,7 @@ wsRoutes.get('/ws/:code', async (c) => {
   headers.set('x-turn-seconds', String(row.turn_seconds));
   headers.set('x-stake', String(row.stake_per_la));
   headers.set('x-budget', String(budget));
+  headers.set('x-avatar-ver', user.avatarVer === null ? '' : String(user.avatarVer));
   const stub = c.env.ROOM.get(c.env.ROOM.idFromName(code));
   return stub.fetch(c.req.raw.url, { headers });
 });

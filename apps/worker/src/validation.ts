@@ -59,3 +59,17 @@ export function parseRoomSettings(input: unknown): ParseResult<RoomSettings> {
   }
   return { ok: true, value: { maxPlayers, turnSeconds, stakePerLa } };
 }
+
+export const AVATAR_MAX_BYTES = 64 * 1024;
+
+/** The browser already cropped and re-encoded; the server only checks size and the JPEG magic bytes. */
+export function parseAvatarBytes(input: ArrayBuffer): ParseResult<ArrayBuffer> {
+  if (input.byteLength === 0 || input.byteLength > AVATAR_MAX_BYTES) {
+    return { ok: false, error: 'Ảnh phải nhỏ hơn 64 KB' };
+  }
+  const head = new Uint8Array(input, 0, Math.min(3, input.byteLength));
+  if (head[0] !== 0xff || head[1] !== 0xd8 || head[2] !== 0xff) {
+    return { ok: false, error: 'Ảnh phải là JPEG' };
+  }
+  return { ok: true, value: input };
+}
