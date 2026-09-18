@@ -30,6 +30,26 @@ export interface RoomLookup {
   closed?: boolean;
 }
 
+export interface WheelSegmentView {
+  amount: number;
+  label: string;
+}
+
+export interface RewardsInfo {
+  day: string;
+  checkedIn: boolean;
+  spinsLeft: number;
+  checkinAmount: number;
+  segments: WheelSegmentView[];
+}
+
+export interface SpinResult {
+  segment: number;
+  amount: number;
+  spinsLeft: number;
+  budget: number;
+}
+
 export class ApiError extends Error {
   status: number;
 
@@ -84,6 +104,12 @@ export const api = {
 
   uploadAvatar: (blob: Blob) =>
     req<{ avatarVer: number }>('/api/me/avatar', { method: 'PUT', headers: { 'content-type': 'image/jpeg' }, body: blob }),
+
+  rewards: () => req<RewardsInfo>('/api/rewards'),
+
+  checkin: () => req<{ amount: number; budget: number }>('/api/checkin', { method: 'POST' }),
+
+  spin: () => req<SpinResult>('/api/spin', { method: 'POST' }),
 };
 
 /** Versioned so the immutable cache never shows a stale photo. */

@@ -2,15 +2,39 @@
   import { onMount } from 'svelte';
   import AppButton from '../components/app-button.svelte';
   import Avatar from '../components/avatar.svelte';
-  import { api } from '../lib/api';
+  import CheckinCard from '../components/checkin-card.svelte';
+  import WheelModal from '../components/wheel-modal.svelte';
+  import { api, type RewardsInfo } from '../lib/api';
   import { formatMoney } from '../lib/format-money';
   import { go } from '../lib/router.svelte';
   import { session, setUser } from '../lib/session.svelte';
 
+  let rewards = $state<RewardsInfo | null>(null);
+  let rewardsFailed = $state(false);
+  let wheelOpen = $state(false);
+
   // The budget moves while playing; refresh it whenever Home is shown.
   onMount(() => {
     void api.me().then(setUser).catch(() => {});
+    void api
+      .rewards()
+      .then((info) => (rewards = info))
+      .catch(() => (rewardsFailed = true));
   });
+
+  function creditBudget(budget: number): void {
+    if (session.user) setUser({ ...session.user, budget });
+  }
+
+  function onchecked(budget: number): void {
+    if (rewards) rewards.checkedIn = true;
+    creditBudget(budget);
+  }
+
+  function onspun(result: { spinsLeft: number; budget: number }): void {
+    if (rewards) rewards.spinsLeft = result.spinsLeft;
+    creditBudget(result.budget);
+  }
 
   async function logout(): Promise<void> {
     await api.logout().catch(() => {});
@@ -38,9 +62,24 @@
         <AppButton variant="secondary" onclick={() => go('#/profile')}>Hồ sơ</AppButton>
       </div>
     </section>
-    <section class="home-rewards" aria-label="Phần thưởng"></section>
+    <section class="home-rewards" aria-label="Phần thưởng">
+      {#if rewards}
+        <CheckinCard checkedIn={rewards.checkedIn} amount={rewards.checkinAmount} {onchecked} />
+        <div class="panel wheel-card">
+          <h2 class="wheel-title">Vòng quay may mắn</h2>
+          <p class="wheel-line">Còn {rewards.spinsLeft}/5 lượt hôm nay</p>
+          <AppButton variant="secondary" disabled={rewards.spinsLeft === 0} onclick={() => (wheelOpen = true)}>Quay ngay</AppButton>
+        </div>
+      {:else if rewardsFailed}
+        <p class="rewards-error">Không tải được phần thưởng</p>
+      {/if}
+    </section>
   {/if}
 </div>
+
+{#if wheelOpen && rewards}
+  <WheelModal segments={rewards.segments} spinsLeft={rewards.spinsLeft} {onspun} onclose={() => (wheelOpen = false)} />
+{/if}
 
 <style>
   .home-screen {
@@ -108,5 +147,26 @@
     flex-direction: column;
     gap: var(--sp-3);
     justify-content: center;
+  }
+  .wheel-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+  }
+  .wheel-title {
+    margin: 0;
+    font-size: var(--fs-md);
+    font-weight: 700;
+  }
+  .wheel-line {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+  .rewards-error {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    text-align: center;
   }
 </style>
