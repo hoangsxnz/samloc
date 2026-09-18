@@ -6,12 +6,20 @@
     /** Offset of the origin point from the centre stack, in design-frame px. */
     dx: number;
     dy: number;
+    /** Where the combo rests on the stack, relative to the centre; matches `scatterFor`. */
+    landDx?: number;
+    landDy?: number;
+    landRot?: number;
   }
 
-  let { cards, dx, dy }: Props = $props();
+  let { cards, dx, dy, landDx = 0, landDy = 0, landRot = 0 }: Props = $props();
 </script>
 
-<div class="card-flight" style="--dx:{dx}px; --dy:{dy}px" aria-hidden="true">
+<div
+  class="card-flight"
+  style="--dx:{dx}px; --dy:{dy}px; --ldx:{landDx}px; --ldy:{landDy}px; --lrot:{landRot}deg"
+  aria-hidden="true"
+>
   <div class="flight-cards">
     {#each cards as id (id)}
       <PlayingCard {id} size="sm" />
@@ -40,11 +48,11 @@
   }
   @keyframes card-fly {
     from {
-      transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(0.85);
+      transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(0deg) scale(0.85);
       opacity: 0.9;
     }
     to {
-      transform: translate(-50%, -50%) scale(1);
+      transform: translate(-50%, -50%) translate(var(--ldx), var(--ldy)) rotate(var(--lrot)) scale(1);
       opacity: 1;
     }
   }

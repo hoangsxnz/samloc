@@ -19,8 +19,6 @@ function tagFor(event: GameEvent): { seat: number; text: string; tone: Tag['tone
         : { seat: event.seat, text: `Chặt 2 +${event.amount}`, tone: 'gold' };
     case 'baoSam':
       return { seat: event.seat, text: 'Báo Sâm!', tone: 'danger' };
-    case 'bao1':
-      return { seat: event.seat, text: 'Báo 1', tone: 'warn' };
     case 'anTrang':
       return { seat: event.seat, text: 'Ăn trắng', tone: 'info' };
     case 'denBai':
@@ -60,6 +58,11 @@ export class TagQueue {
   }
 
   #push(event: GameEvent): void {
+    // The avatar badge is the visual for Báo 1; only the screen reader needs telling.
+    if (event.type === 'bao1') {
+      this.ariaLive = 'Báo 1';
+      return;
+    }
     const mapped = tagFor(event);
     if (!mapped) return;
     this.ariaLive = mapped.text;

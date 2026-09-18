@@ -19,6 +19,7 @@
     TABLE_WIDTH,
   } from '../../lib/table-layout';
   import { tableTheme } from '../../lib/table-theme.svelte';
+  import { scatterFor } from '../../lib/trick-scatter';
   import type { TableLogic } from './table-logic.svelte';
 
   interface Props {
@@ -52,6 +53,8 @@
     const slot = opponentSeats.find((o) => o.seatView?.seat === seat)?.slot;
     return slot ? slotOrigin(slot) : CENTRE_POINT;
   });
+
+  const landing = $derived(logic.flight ? scatterFor(logic.flight.seat, logic.flight.cards) : null);
 </script>
 
 <div
@@ -82,6 +85,9 @@
         cards={logic.flight.cards}
         dx={flightOrigin.x - CENTRE_POINT.x}
         dy={flightOrigin.y - CENTRE_POINT.y}
+        landDx={landing?.dx ?? 0}
+        landDy={landing?.dy ?? 0}
+        landRot={landing?.rot ?? 0}
       />
     {/key}
   {/if}

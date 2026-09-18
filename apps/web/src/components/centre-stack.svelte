@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { SeatView, TrickEntry } from '@samloc/worker/ws-types';
+  import { scatterFor } from '../lib/trick-scatter';
   import PlayingCard from './playing-card.svelte';
 
   interface Props {
@@ -13,13 +14,11 @@
     return seats.find((s) => s.seat === seat)?.name ?? '';
   }
 
-  function ageStyle(age: number): string {
-    const sign = age % 2 === 0 ? -1 : 1;
-    const opacity = Math.max(0.3, 0.5 - (age - 1) * 0.08);
-    const x = sign * (20 + age * 8);
-    const y = 4 + age * 3;
-    const rot = sign * (5 + age);
-    return `opacity:${opacity}; transform: translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${rot}deg);`;
+  /** Each combo rests on its own hashed spot; older rows only fade, they never move. */
+  function rowStyle(entry: TrickEntry, age: number): string {
+    const { dx, dy, rot } = scatterFor(entry.seat, entry.cards);
+    const opacity = age === 0 ? 1 : Math.max(0.3, 0.5 - (age - 1) * 0.08);
+    return `opacity:${opacity}; transform: translate(-50%, -50%) translate(${dx}px, ${dy}px) rotate(${rot}deg);`;
   }
 </script>
 
@@ -27,7 +26,7 @@
   {#each trick as entry, i (i)}
     {@const isNewest = i === trick.length - 1}
     {@const age = trick.length - 1 - i}
-    <div class="trick-row" class:newest={isNewest} style={isNewest ? '' : ageStyle(age)}>
+    <div class="trick-row" class:newest={isNewest} style={rowStyle(entry, age)}>
       <div class="trick-cards">
         {#each entry.cards as id (id)}
           <PlayingCard {id} size="sm" />
@@ -65,6 +64,7 @@
   }
   /* Fades in as the flight lands, so the flying copy and the real row never both read as solid. */
   .trick-row.newest {
+    z-index: 1;
     animation: trick-land 260ms ease-out both;
   }
   @keyframes trick-land {

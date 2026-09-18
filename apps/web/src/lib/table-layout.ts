@@ -8,7 +8,7 @@ export type SeatSlot = 'top-left' | 'top-right' | 'left' | 'right' | 'top-centre
 const SLOTS_BY_COUNT: Record<number, SeatSlot[]> = {
   2: ['top-centre'],
   3: ['top-left', 'top-right'],
-  4: ['top-left', 'top-right', 'right'],
+  4: ['left', 'top-centre', 'right'],
   5: ['left', 'top-left', 'top-right', 'right'],
 };
 
@@ -38,13 +38,16 @@ export function opponentSlots(youSeat: number, seatNumbers: readonly number[]): 
 
 export const SEAT_WIDTH = 80;
 
-/** Absolute positions (px) inside the 844×390 frame; top seats sit outside the centre stack (x 302–542). */
+/**
+ * Absolute positions (px) inside the 844×390 frame; top seats sit outside the centre stack (x 302–542)
+ * and the side seats (~105 px tall) are centred on the table's y 200.
+ */
 export const SLOT_POSITIONS: Record<SeatSlot, { left?: number; right?: number; top: number }> = {
   'top-left': { left: 200, top: 48 },
   'top-right': { right: 200, top: 48 },
   'top-centre': { left: TABLE_WIDTH / 2 - SEAT_WIDTH / 2, top: 48 },
-  left: { left: 44, top: 120 },
-  right: { right: 44, top: 120 },
+  left: { left: 44, top: 148 },
+  right: { right: 44, top: 148 },
 };
 
 /** Whole-table scale for viewports shorter than the reference; clamped to 0.82..1. */

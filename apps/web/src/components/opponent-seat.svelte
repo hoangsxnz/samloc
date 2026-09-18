@@ -39,6 +39,7 @@
     {#if active}
       <div class="opp-ring"><TimerRing {remain} {turnSeconds} size={48} stroke={3} digits={false} /></div>
     {/if}
+    {#if seat.bao1}<span class="opp-bao1" aria-label="Còn 1 lá">1</span>{/if}
   </div>
   <span class="opp-name">{displayName}</span>
   <div class="opp-count-row">
@@ -49,8 +50,6 @@
     <span class="opp-tag">⟳</span>
   {:else if seat.passed}
     <span class="opp-tag">Bỏ</span>
-  {:else if seat.bao1}
-    <span class="opp-tag hot">Báo 1</span>
   {/if}
   <div class="opp-tag-queue">
     {#each tags as tag (tag.id)}<EventTag text={tag.text} tone={tag.tone} />{/each}
@@ -96,6 +95,21 @@
     position: absolute;
     inset: -4px;
     pointer-events: none;
+  }
+  /* Báo 1 lives on the avatar so the seat column never grows into the centre stack. */
+  .opp-bao1 {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--danger);
+    color: #fff;
+    font: 700 11px/18px var(--font-sans);
+    text-align: center;
+    border: 2px solid var(--felt-dark);
+    z-index: 1;
   }
   .disconnected .opp-avatar {
     border-color: var(--text-muted);
@@ -149,10 +163,6 @@
     background: rgba(0, 0, 0, 0.45);
     color: var(--text-muted);
     line-height: 13px;
-  }
-  .opp-tag.hot {
-    background: var(--danger);
-    color: #fff;
   }
   /* Bubbles rise above the avatar; the event tags occupy the space below it. */
   .opp-reactions {
