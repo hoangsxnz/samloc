@@ -3,6 +3,7 @@ import { RULES_VERSION } from '@samloc/rules';
 import { authMiddleware, type AuthedVariables } from './auth-middleware';
 import { authRoutes } from './routes-auth';
 import { profileRoutes } from './routes-profile';
+import { rewardRoutes } from './routes-rewards';
 import { roomRoutes } from './routes-rooms';
 import { wsRoutes } from './routes-ws';
 
@@ -21,6 +22,7 @@ app.use('/api/*', (c, next) => {
 
 app.route('/api', authRoutes);
 app.route('/api', profileRoutes);
+app.route('/api', rewardRoutes);
 app.route('/api', roomRoutes);
 app.route('/', wsRoutes);
 
