@@ -103,7 +103,7 @@ Durations: micro 120 ms (press, toggle), standard 200 ms (raise card, event tag 
 - Play: fly-to-centre animation (260 ms) — selected cards transform from hand to centre stack. Previous combo drops to 30–50 % opacity. Newest trick fades in over 260 ms to prevent duplicate card flash mid-flight.
 - Trick end: centre stack fades 350 ms.
 - Timer under 5 s: digits `scale(1→1.15)` pulse 500 ms infinite.
-- Sound cues (Web Audio, unlocked on the first pointerdown, mute persisted in `localStorage` `samloc.sound`): `shuffle` on hand start, `play` on every new trick entry, `join` when another seat appears, `turn` when the turn becomes mine, `win` / `lose` at hand end (spectators hear neither). Nothing plays on the first snapshot after connecting. Files live in `apps/web/public/sounds/<key>.mp3`; a missing file leaves that cue silent.
+- Sound cues (Web Audio, unlocked from `pointerup` / `keydown` — the events that grant user activation on touch — and retried until the context runs; mute persisted in `localStorage` `samloc.sound`): `shuffle` on hand start, `play` on every new trick entry, `join` when another seat appears, `turn` when the turn becomes mine, `win` / `lose` at hand end (spectators hear neither). Nothing plays on the first snapshot after connecting. Files live in `apps/web/public/sounds/<key>.mp3`; a missing file leaves that cue silent.
 - `@media (prefers-reduced-motion: reduce)`: disable deal/play/collect motion, keep opacity fades ≤ 100 ms, no pulse.
 
 ## 6. Landscape lock

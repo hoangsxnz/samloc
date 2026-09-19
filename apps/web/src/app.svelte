@@ -17,7 +17,10 @@
     initRouter();
     void bootstrap();
     document.addEventListener('pointerdown', requestLandscapeLockOnce, { once: true });
-    document.addEventListener('pointerdown', () => sound.unlock(), { once: true });
+    // pointerup (not pointerdown) grants user activation for touch; kept attached so iOS can resume after an interruption.
+    const unlock = () => sound.unlock();
+    document.addEventListener('pointerup', unlock);
+    document.addEventListener('keydown', unlock);
   });
 
   $effect(() => {

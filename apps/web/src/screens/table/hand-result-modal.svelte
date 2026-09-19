@@ -86,7 +86,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: min(820px, calc(100vw - 32px));
+    width: min(640px, calc(100vw - 32px));
     height: auto;
     max-height: calc(100dvh - 32px);
     display: flex;
@@ -102,10 +102,10 @@
     from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
     to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   }
-  /* auto-fit keeps 2 players on two wide columns and packs 5 into three, so nothing scrolls. */
+  /* auto-fit gives two columns at 640px: 2 players on one row, 5 players on three, so nothing scrolls. */
   .result-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: var(--sp-2);
     min-height: 0;
     overflow-y: auto;
@@ -125,7 +125,9 @@
   /* Buttons keep their natural width (the shared .btn is 100% wide) so the status gets the rest. */
   .result-foot :global(.btn) {
     width: auto;
+    height: 40px;
     padding: 0 var(--sp-4);
+    font-size: var(--fs-sm);
     flex-shrink: 0;
   }
   /* One horizontal line: the status used to stack vertically when squeezed as a narrow flex item. */

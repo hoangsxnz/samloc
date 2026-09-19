@@ -114,22 +114,25 @@
     padding: 0;
     cursor: default;
   }
+  /* One explicit size for both the SVG and its column: an auto column sized from a percentage-height
+     SVG collapses to ~0 on phone Safari and the wheel paints over the copy. */
   .wheel-panel {
+    --wheel: min(300px, calc(100dvh - 72px));
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: min(560px, calc(100vw - 32px));
-    height: min(340px, calc(100dvh - 24px));
+    height: auto;
+    max-height: calc(100dvh - 24px);
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: var(--wheel) minmax(0, 1fr);
     gap: var(--sp-4);
     align-items: center;
   }
   .wheel {
-    height: 100%;
-    max-height: 300px;
-    aspect-ratio: 1;
+    width: var(--wheel);
+    height: var(--wheel);
   }
   .wedge {
     fill: var(--surface-2);

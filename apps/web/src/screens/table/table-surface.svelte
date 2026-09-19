@@ -77,7 +77,7 @@
     {/if}
   {/each}
 
-  <CentreStack trick={view.trick} seats={view.seats} />
+  <CentreStack trick={view.trick} />
 
   {#if logic.flight}
     {#key logic.flight.id}

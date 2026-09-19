@@ -33,7 +33,7 @@
     gap: var(--sp-3);
   }
   .result-head h1 {
-    font-size: var(--fs-xl);
+    font-size: var(--fs-lg);
     margin: 0;
   }
   .result-winner {

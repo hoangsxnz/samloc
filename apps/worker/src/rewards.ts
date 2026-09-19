@@ -7,15 +7,15 @@ export interface WheelSegment {
   label: string;
 }
 
-/** Weights sum to 100; expected value ≈ 950 đ per spin. */
+/** Weights sum to 100; expected value ≈ $950 per spin. */
 export const WHEEL_SEGMENTS: readonly WheelSegment[] = [
   { amount: 200, weight: 30, label: '200' },
   { amount: 400, weight: 22, label: '400' },
   { amount: 600, weight: 16, label: '600' },
-  { amount: 1_000, weight: 13, label: '1.000' },
-  { amount: 2_000, weight: 9, label: '2.000' },
-  { amount: 4_000, weight: 5, label: '4.000' },
-  { amount: 10_000, weight: 2, label: '10.000' },
+  { amount: 1_000, weight: 13, label: '1,000' },
+  { amount: 2_000, weight: 9, label: '2,000' },
+  { amount: 4_000, weight: 5, label: '4,000' },
+  { amount: 10_000, weight: 2, label: '10,000' },
   { amount: 0, weight: 3, label: 'Chúc may mắn' },
 ];
 

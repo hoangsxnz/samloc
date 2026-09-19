@@ -23,9 +23,11 @@ function load(): boolean {
 }
 
 /**
- * Web Audio player for the game cues. iOS only plays from an `AudioContext` resumed inside a user
- * gesture, so `unlock()` runs from the first pointerdown and decoding starts there too. A cue whose
- * file is missing or undecodable is stored as `null` and simply never plays.
+ * Web Audio player for the game cues. Phones only play from an `AudioContext` resumed inside a
+ * user gesture, so `unlock()` runs from `pointerup` / `keydown` — the events that grant user
+ * activation on touch devices (a touch `pointerdown` does not) — and stays attached so a context
+ * iOS has `interrupted` after a call or tab switch resumes on the next tap. Decoding starts on the
+ * first call. A cue whose file is missing or undecodable is stored as `null` and simply never plays.
  */
 class SoundManager {
   enabled = $state(load());
@@ -43,15 +45,13 @@ class SoundManager {
   }
 
   unlock(): void {
-    if (this.#ctx) {
-      void this.#ctx.resume();
-      return;
+    if (this.#ctx?.state === 'running') return;
+    if (!this.#ctx) {
+      if (typeof AudioContext === 'undefined') return;
+      this.#ctx = new AudioContext();
+      for (const key of SOUND_KEYS) void this.#load(this.#ctx, key);
     }
-    if (typeof AudioContext === 'undefined') return;
-    const ctx = new AudioContext();
-    this.#ctx = ctx;
-    void ctx.resume();
-    for (const key of SOUND_KEYS) void this.#load(ctx, key);
+    void this.#ctx.resume();
   }
 
   play(key: SoundKey): void {

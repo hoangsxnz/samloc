@@ -38,7 +38,7 @@
     background: var(--bg);
     border: 1px solid var(--line);
     border-radius: var(--r-md);
-    padding: 6px 8px;
+    padding: 4px 8px;
     display: grid;
     grid-template-columns: 28px minmax(0, 1fr) auto;
     gap: 2px 6px;
@@ -80,7 +80,7 @@
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    height: 32px;
+    height: 28px;
     min-width: 0;
   }
   .result-cards i {
@@ -89,7 +89,7 @@
     color: var(--text-muted);
   }
   .result-cards :global(.card-xs) {
-    margin-left: -12px;
+    margin-left: -14px;
     flex-shrink: 0;
   }
   .result-cards :global(.card-xs:first-child) {

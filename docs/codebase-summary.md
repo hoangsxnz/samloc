@@ -123,12 +123,12 @@ Svelte 5 + Vite, landscape-only responsive design (844×390 design reference, sc
 | `lib/orientation.svelte.ts` | Landscape-lock detection and request on first pointer event |
 | `lib/table-layout.ts` | Seat/card positioning math: `fanLayout()` (flat row of left offsets, no arc), `tableScale()`, opponent slots (4 players: left / top-centre / right); exports `Point`, `CENTRE_POINT`, `FAN_ORIGIN`, `slotOrigin()` with updated `FAN_TRACK_LEFT` 236 |
 | `lib/trick-scatter.ts` | `scatterFor(seat, cards)` — FNV-1a hashed offset/rotation inside a 120×40 box so every client places a combo identically |
-| `lib/sound.svelte.ts` | `sound` singleton: Web Audio player for the six cues (`/sounds/<key>.mp3`), unlocked on the first pointerdown, `enabled` persisted in `localStorage` `samloc.sound`; a missing file leaves that cue silent |
+| `lib/sound.svelte.ts` | `sound` singleton: Web Audio player for the six cues (`/sounds/<key>.mp3`), unlocked from `pointerup`/`keydown` (activation-granting on touch), retried until the context is running, `enabled` persisted in `localStorage` `samloc.sound`; a missing file leaves that cue silent |
 | `lib/sound-cues.ts` | `soundCuesFor(prev, next)` — pure snapshot diff → `shuffle` / `play` / `join` / `turn` / `win` / `lose` |
 | `lib/avatar-resize.ts` | `resizeAvatar(file)` — bitmap decode, centre crop, 128×128 JPEG ≤ 64 KB |
 | `lib/wheel.ts` | SVG wedge geometry (`segmentPath`, `labelPosition`) and `rotationFor()` (≥ 5 turns, lands the server-chosen wedge under the pointer) |
 | `lib/card-view.ts` | Card rendering helpers: suit glyphs, rank labels, `comboLabel()` (renders a low straight as A-2-3) |
-| `lib/format-money.ts` | `formatMoney()` / `formatMoneyDelta()` — vi-VN grouping with `đ`, shared by lobby, seats and result rows |
+| `lib/format-money.ts` | `formatMoney()` / `formatMoneyDelta()` — `$` prefix with en-US grouping (`$10,000`), shared by lobby, seats and result rows |
 | `lib/hand-order.ts` | `orderHand(hand, 'rank' \| 'group')` — display order behind the "Xếp bài" button; sets, then runs, then singles |
 | `lib/table-theme.svelte.ts` | Device-local felt colour (4 presets, `localStorage` `samloc.felt`, green fallback); exposes the three `--felt*` vars for `.table-root` |
 | `lib/emoji-glyphs.ts` | Emoji allowlist: `EMOJI_GLYPHS`, `EMOJI_ORDER`, `EMOJI_LABELS` (client-side only) |

@@ -1,18 +1,13 @@
 <script lang="ts">
-  import type { SeatView, TrickEntry } from '@samloc/worker/ws-types';
+  import type { TrickEntry } from '@samloc/worker/ws-types';
   import { scatterFor } from '../lib/trick-scatter';
   import PlayingCard from './playing-card.svelte';
 
   interface Props {
     trick: TrickEntry[];
-    seats: SeatView[];
   }
 
-  let { trick, seats }: Props = $props();
-
-  function nameFor(seat: number): string {
-    return seats.find((s) => s.seat === seat)?.name ?? '';
-  }
+  let { trick }: Props = $props();
 
   /** Each combo rests on its own hashed spot; older rows only fade, they never move. */
   function rowStyle(entry: TrickEntry, age: number): string {
@@ -32,7 +27,6 @@
           <PlayingCard {id} size="sm" />
         {/each}
       </div>
-      {#if isNewest}<span class="trick-who">{nameFor(entry.seat)}</span>{/if}
     </div>
   {/each}
 </div>
@@ -84,11 +78,5 @@
   }
   .trick-cards :global(.card-sm:first-child) {
     margin-left: 0;
-  }
-  .trick-who {
-    margin-top: 4px;
-    font-size: 11px;
-    color: var(--text-muted);
-    white-space: nowrap;
   }
 </style>

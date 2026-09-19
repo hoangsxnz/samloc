@@ -2,6 +2,13 @@
 
 ## 2026-09-19
 
+### Fixes from phone play-testing
+- Money reads `$10,000` (`$` prefix, en-US grouping) everywhere; deltas `+$500` / `−$500`; wheel wedge labels `1,000` … `10,000`
+- Sound unlocks from `pointerup` / `keydown` instead of a once-only `pointerdown`: a touch `pointerdown` never grants user activation, so the `AudioContext` stayed suspended on phones
+- Lucky-wheel modal sizes the wheel and its grid column from one `--wheel` variable; phone Safari collapsed the `auto` column and painted the wheel over the buttons
+- Result board one notch smaller (640px, `--fs-lg` title, 40px footer buttons, tighter rows) so 5 players fit at 844×390
+- No player name under the played combo in the centre of the table
+
 ### Features
 
 #### Sound cues and a mute toggle
