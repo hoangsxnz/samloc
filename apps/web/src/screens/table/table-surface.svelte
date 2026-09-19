@@ -3,6 +3,8 @@
   import ActionBar from '../../components/action-bar.svelte';
   import CardFlight from '../../components/card-flight.svelte';
   import CentreStack from '../../components/centre-stack.svelte';
+  import DealFlight from '../../components/deal-flight.svelte';
+  import DeckStack from '../../components/deck-stack.svelte';
   import EmojiBar from '../../components/emoji-bar.svelte';
   import HandFan from '../../components/hand-fan.svelte';
   import MeChip from '../../components/me-chip.svelte';
@@ -17,6 +19,7 @@
     SLOT_POSITIONS,
     TABLE_HEIGHT,
     TABLE_WIDTH,
+    type Point,
   } from '../../lib/table-layout';
   import { tableTheme } from '../../lib/table-theme.svelte';
   import { scatterFor } from '../../lib/trick-scatter';
@@ -46,14 +49,16 @@
       .filter((o) => o.seatView !== undefined),
   );
 
-  /** Where a played combo starts its flight: my fan, or the playing opponent's avatar. */
-  const flightOrigin = $derived.by(() => {
-    const seat = logic.flight?.seat;
+  /** A seat's point on the table: my fan, or an opponent's avatar. Flights start or end here. */
+  function originFor(seat: number | undefined): Point {
     if (seat === undefined) return CENTRE_POINT;
     if (seat === view.youSeat) return FAN_ORIGIN;
     const slot = opponentSeats.find((o) => o.seatView?.seat === seat)?.slot;
     return slot ? slotOrigin(slot) : CENTRE_POINT;
-  });
+  }
+
+  const flightOrigin = $derived(originFor(logic.flight?.seat));
+  const dealTarget = $derived(originFor(logic.deal.currentSeat ?? undefined));
 
   const landing = $derived(logic.flight ? scatterFor(logic.flight.seat, logic.flight.cards) : null);
 </script>
@@ -67,7 +72,7 @@
   {#each opponentSeats as opp (opp.seatView?.seat)}
     {#if opp.seatView}
       <OpponentSeat
-        seat={opp.seatView}
+        seat={logic.deal.dealing ? { ...opp.seatView, cardCount: logic.deal.dealtFor(opp.seatView.seat) } : opp.seatView}
         pos={opp.pos}
         active={view.turnSeat === opp.seatView.seat}
         remain={logic.remain}
@@ -79,6 +84,13 @@
   {/each}
 
   <CentreStack trick={view.trick} />
+
+  {#if logic.deal.dealing}
+    <DeckStack />
+    {#key logic.deal.dealt}
+      <DealFlight dx={dealTarget.x - CENTRE_POINT.x} dy={dealTarget.y - CENTRE_POINT.y} />
+    {/key}
+  {/if}
 
   {#if logic.flight}
     {#key logic.flight.id}
@@ -112,7 +124,7 @@
   <EmojiBar onpick={(key) => room.sendEmoji(key)} />
 
   <HandFan
-    hand={logic.orderedHand}
+    hand={logic.deal.dealing ? logic.orderedHand.slice(0, logic.deal.dealtFor(view.youSeat)) : logic.orderedHand}
     selected={logic.selected}
     playable={logic.playableIds}
     ontoggle={(id) => logic.toggle(id)}

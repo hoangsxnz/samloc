@@ -1,8 +1,10 @@
+import { untrack } from 'svelte';
 import { canBeat, legalMoves, parseCombo, rankOf, type Combo } from '@samloc/rules';
 import { comboLabel } from '../../lib/card-view';
 import { orderHand, type HandSortMode } from '../../lib/hand-order';
 import { room } from '../../lib/room.svelte';
 import { seatsAfter } from '../../lib/table-layout';
+import { DealSchedule } from './deal-schedule.svelte';
 import { TagQueue, type Tag } from './table-tags.svelte';
 
 export interface Flight {
@@ -24,6 +26,7 @@ export class TableLogic {
   selected = $state<string[]>([]);
   sortMode = $state<HandSortMode>('rank');
   flight = $state<Flight | null>(null);
+  readonly deal = new DealSchedule();
   readonly tagQueue = new TagQueue();
 
   #now = $state(Date.now());
@@ -52,6 +55,13 @@ export class TableLogic {
 
     $effect(() => () => {
       if (this.#flightTimer) clearTimeout(this.#flightTimer);
+    });
+
+    // Priming rule as for flights: the first snapshot after a connect sets no handStartedAt.
+    $effect(() => {
+      if (room.handStartedAt === null || prefersReducedMotion()) return;
+      const view = untrack(() => room.view);
+      return view ? this.deal.start(view) : undefined;
     });
   }
 

@@ -21,6 +21,8 @@ class RoomStore {
   events = $state<GameEvent[]>([]);
   reactions = $state<Reaction[]>([]);
   lastError = $state<string | null>(null);
+  /** `Date.now()` of the snapshot that dealt the current hand; null after a reload, so a deal never replays. */
+  handStartedAt = $state<number | null>(null);
   #code: string | null = null;
   #reactionSeq = 0;
   #reactionTimers = new Map<number, ReturnType<typeof setTimeout>>();
@@ -31,7 +33,9 @@ class RoomStore {
     this.ws.onSnapshot = (view) => {
       const prev = this.view;
       this.view = view;
-      if (prev) for (const key of soundCuesFor(prev, view)) sound.play(key);
+      const cues = prev ? soundCuesFor(prev, view) : [];
+      if (cues.includes('shuffle')) this.handStartedAt = Date.now();
+      for (const key of cues) sound.play(key);
     };
     this.ws.onEvent = (event) => {
       this.events = [...this.events, event].slice(-MAX_EVENTS);
@@ -50,6 +54,7 @@ class RoomStore {
     if (this.#code !== null) this.ws.close();
     this.#code = code;
     this.view = null;
+    this.handStartedAt = null;
     this.events = [];
     this.#clearReactions();
     this.lastError = null;
@@ -61,6 +66,7 @@ class RoomStore {
     this.#code = null;
     this.ws.close();
     this.view = null;
+    this.handStartedAt = null;
     this.events = [];
     this.#clearReactions();
   }
