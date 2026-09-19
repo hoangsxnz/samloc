@@ -60,6 +60,11 @@
   const flightOrigin = $derived(originFor(logic.flight?.seat));
   const dealTarget = $derived(originFor(logic.deal.currentSeat ?? undefined));
 
+  const samLabel = $derived.by(() => {
+    if (!logic.inSamWindow || !mySeat?.samChoice) return null;
+    return mySeat.samChoice === 'declare' ? 'Đã báo Sâm' : 'Đã huỷ báo';
+  });
+
   const landing = $derived(logic.flight ? scatterFor(logic.flight.seat, logic.flight.cards) : null);
 </script>
 
@@ -74,7 +79,8 @@
       <OpponentSeat
         seat={logic.deal.dealing ? { ...opp.seatView, cardCount: logic.deal.dealtFor(opp.seatView.seat) } : opp.seatView}
         pos={opp.pos}
-        active={view.turnSeat === opp.seatView.seat}
+        active={!logic.inSamWindow && view.turnSeat === opp.seatView.seat}
+        inSamWindow={logic.inSamWindow}
         remain={logic.remain}
         turnSeconds={view.settings.turnSeconds}
         tags={logic.tagsFor(opp.seatView.seat)}
@@ -112,6 +118,7 @@
       avatarVer={mySeat.avatarVer}
       money={mySeat.money}
       isMyTurn={logic.isMyTurn}
+      samLabel={samLabel}
       remain={logic.remain}
       turnSeconds={view.settings.turnSeconds}
       invalidReason={logic.invalidReason}
@@ -137,11 +144,12 @@
       currentCombo={logic.currentCombo}
       canPlay={logic.canPlay}
       isMyTurn={logic.isMyTurn}
-      canDeclareSam={view.canDeclareSam}
+      samDecision={logic.showSamDecision ? { remain: logic.samRemain, canDeclare: view.canDeclareSam } : null}
       canSort={view.hand.length > 0}
       onplay={() => logic.play()}
       onpass={() => logic.pass()}
       {onbaosam}
+      ondecline={() => logic.decline()}
       onsort={() => logic.toggleSort()}
     />
   {/if}

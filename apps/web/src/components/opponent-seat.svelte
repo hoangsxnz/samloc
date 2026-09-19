@@ -11,13 +11,14 @@
     seat: SeatView;
     pos: { left?: number; right?: number; top: number };
     active: boolean;
+    inSamWindow: boolean;
     remain: number;
     turnSeconds: number;
     tags: { id: number; text: string; tone: 'gold' | 'danger' | 'warn' | 'info' }[];
     reactions: Reaction[];
   }
 
-  let { seat, pos, active, remain, turnSeconds, tags, reactions }: Props = $props();
+  let { seat, pos, active, inSamWindow, remain, turnSeconds, tags, reactions }: Props = $props();
 
   const displayName = $derived(seat.name.length > 8 ? `${seat.name.slice(0, 8)}…` : seat.name);
   const posStyle = $derived(
@@ -47,6 +48,10 @@
   </div>
   {#if !seat.connected}
     <span class="opp-tag">⟳</span>
+  {:else if inSamWindow && seat.samChoice === 'declare'}
+    <span class="opp-tag sam">Báo Sâm</span>
+  {:else if inSamWindow && seat.samChoice === 'decline'}
+    <span class="opp-tag">Huỷ báo</span>
   {:else if seat.passed}
     <span class="opp-tag">Bỏ</span>
   {/if}
@@ -162,6 +167,9 @@
     background: rgba(0, 0, 0, 0.45);
     color: var(--text-muted);
     line-height: 13px;
+  }
+  .opp-tag.sam {
+    color: var(--gold);
   }
   /* Bubbles rise above the avatar; the event tags occupy the space below it. */
   .opp-reactions {

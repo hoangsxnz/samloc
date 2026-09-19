@@ -12,6 +12,8 @@
     avatarVer: number | null;
     money: number;
     isMyTurn: boolean;
+    /** Replaces "Chờ lượt" once this seat has decided inside the sâm window. */
+    samLabel: string | null;
     remain: number;
     turnSeconds: number;
     invalidReason: string | null;
@@ -20,8 +22,20 @@
     reactions: Reaction[];
   }
 
-  let { name, userId, avatarVer, money, isMyTurn, remain, turnSeconds, invalidReason, denWarn, tags, reactions }: Props =
-    $props();
+  let {
+    name,
+    userId,
+    avatarVer,
+    money,
+    isMyTurn,
+    samLabel,
+    remain,
+    turnSeconds,
+    invalidReason,
+    denWarn,
+    tags,
+    reactions,
+  }: Props = $props();
 
   const subLine = $derived(invalidReason ?? (denWarn ? 'Có thể phải đền bài' : null));
   const danger = $derived(isMyTurn && remain < 5);
@@ -42,7 +56,7 @@
     {/if}
   </div>
   <div class="me-label">
-    {isMyTurn ? 'Lượt của bạn' : 'Chờ lượt'}
+    {isMyTurn ? 'Lượt của bạn' : (samLabel ?? 'Chờ lượt')}
     {#if subLine}
       <small class:warn={!!invalidReason || denWarn}>{subLine}</small>
     {:else}

@@ -65,7 +65,17 @@ export class TableLogic {
     });
   }
 
-  readonly isMyTurn = $derived(room.view !== null && room.view.turnSeat === room.view.youSeat);
+  readonly inSamWindow = $derived(room.view?.phase === 'sam-window');
+
+  /** The leader is turnSeat from the deal, but nothing is playable until the sâm window closes. */
+  readonly isMyTurn = $derived(room.view !== null && room.view.turnSeat === room.view.youSeat && !this.inSamWindow);
+
+  readonly mySeat = $derived(room.view?.seats.find((s) => s.seat === room.view?.youSeat) ?? null);
+
+  /** Huỷ báo / Báo Sâm are asked once the deal animation is over and only of a seat holding cards. */
+  readonly showSamDecision = $derived(
+    this.inSamWindow && !this.deal.dealing && this.mySeat !== null && this.mySeat.samChoice === null && this.mySeat.cardCount > 0,
+  );
 
   /** Null once the trick is closed: its cards stay on the table but no longer have to be beaten. */
   readonly currentCombo: Combo | null = $derived.by(() => {
@@ -90,6 +100,9 @@ export class TableLogic {
   readonly canPlay = $derived(this.isMyTurn && this.combo !== null && canBeat(this.currentCombo, this.combo));
 
   readonly remain = $derived(Math.max(0, ((room.view?.turnDeadline ?? 0) - this.#now) / 1000));
+
+  /** The server deadline is 15 s from the deal; the ~5 s deal animation eats the first third. */
+  readonly samRemain = $derived(Math.min(10, this.remain));
 
   readonly invalidReason: string | null = $derived.by(() => {
     if (this.selected.length === 0 || !this.isMyTurn) return null;
@@ -142,6 +155,10 @@ export class TableLogic {
 
   pass(): void {
     room.pass();
+  }
+
+  decline(): void {
+    room.declineSam();
   }
 
   get ariaLive(): string {

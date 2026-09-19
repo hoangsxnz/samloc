@@ -30,8 +30,9 @@ export function soundCuesFor(prev: RoomView, next: RoomView): SoundKey[] {
   const known = new Set(prev.seats.map((s) => s.userId));
   if (next.seats.some((s) => !known.has(s.userId) && s.userId !== me)) cues.push('join');
 
-  const myTurn = next.youSeat >= 0 && next.turnSeat === next.youSeat;
-  const wasMyTurn = prev.youSeat >= 0 && prev.turnSeat === prev.youSeat;
+  // The leader is already turnSeat inside the sâm window; the turn starts when the window closes.
+  const myTurn = next.youSeat >= 0 && next.turnSeat === next.youSeat && next.phase !== 'sam-window';
+  const wasMyTurn = prev.youSeat >= 0 && prev.turnSeat === prev.youSeat && prev.phase !== 'sam-window';
   if (myTurn && (!wasMyTurn || prev.handNo !== next.handNo)) cues.push('turn');
 
   if (handEnded(prev, next) && next.result) {

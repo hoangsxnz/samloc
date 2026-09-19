@@ -95,6 +95,10 @@ class RoomStore {
     this.ws.send({ type: 'declareSam' });
   }
 
+  declineSam(): void {
+    this.ws.send({ type: 'declineSam' });
+  }
+
   nextHand(): void {
     this.ws.send({ type: 'nextHand' });
   }
