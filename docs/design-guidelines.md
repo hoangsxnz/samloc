@@ -94,7 +94,7 @@ Small variant (centre stack, result rows): 44×62 px, rank 16 px. Card back: `--
 
 **Check-in card** — `.panel`: title "Điểm danh hàng ngày", "+1.000đ mỗi ngày", primary "Nhận 1.000đ" → disabled "Đã điểm danh hôm nay ✓".
 
-**Lucky wheel** — modal 560×340: left a 280 px SVG wheel (8 wedges alternating `--surface-2` / `--felt-light`, gold 1.5 px strokes, 13 px/700 labels reading outward, 10 px for "Chúc may mắn", gold hub and a gold triangle pointer fixed at 12 o'clock); right the title, "Còn N lượt hôm nay", primary "Quay", the result line (gold, "+600đ 🎉" or "Chúc may mắn lần sau") and ghost "Đóng". Spin: 4 s `cubic-bezier(.17,.67,.12,.99)`, at least five full turns, never rewinds; the scrim and "Đóng" are disabled while spinning; under reduced motion the result shows at once.
+**Lucky wheel** — modal 560×340: left a 280 px SVG wheel (8 wedges in eight fills — `#b8232c`, `#a8862a`, `#1f6f8b`, `#2e7d32`, `#7b3fa0`, `#c2410c`, `#0f766e`, `#6b4f1d` — gold 1.5 px strokes, 13 px/700 labels reading outward, 10 px for "Chúc may mắn", gold hub and a gold triangle pointer fixed at 12 o'clock); right the title, "Còn N lượt hôm nay", primary "Quay", the result line (gold, "+600đ 🎉" or "Chúc may mắn lần sau") and ghost "Đóng". Spin: 4 s `cubic-bezier(.17,.67,.12,.99)`, at least five full turns, never rewinds; a spin plays `/sounds/lucky-wheel.mp3` (4.3 s); the scrim and "Đóng" are disabled while spinning; under reduced motion the result shows at once.
 
 ## 5. Motion
 

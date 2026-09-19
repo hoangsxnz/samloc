@@ -1,6 +1,7 @@
 <script lang="ts">
   import { api, ApiError, type SpinResult, type WheelSegmentView } from '../lib/api';
   import { formatMoney } from '../lib/format-money';
+  import { sound } from '../lib/sound.svelte';
   import { labelPosition, rotationFor, segmentPath } from '../lib/wheel';
   import AppButton from './app-button.svelte';
 
@@ -17,6 +18,8 @@
   const SPIN_MS = 4000;
   /* `transitionend` is skipped in a hidden tab; the fallback still reveals the result. */
   const FALLBACK_MS = 4300;
+  /* Eight distinct fills; each keeps ≥ 3:1 contrast against the near-white label. */
+  const WEDGE_FILLS = ['#b8232c', '#a8862a', '#1f6f8b', '#2e7d32', '#7b3fa0', '#c2410c', '#0f766e', '#6b4f1d'] as const;
 
   let rotation = $state(0);
   let spinning = $state(false);
@@ -60,6 +63,7 @@
       return;
     }
     rotation = rotationFor(pending.segment, segments.length, rotation);
+    sound.play('wheel');
     fallback = setTimeout(finish, FALLBACK_MS);
   }
 </script>
@@ -74,7 +78,7 @@
         ontransitionend={() => spinning && finish()}
       >
         {#each wedges as w, i (i)}
-          <path d={w.d} class="wedge" class:alt={i % 2 === 1} />
+          <path d={w.d} class="wedge" style="fill: {WEDGE_FILLS[i % WEDGE_FILLS.length] ?? WEDGE_FILLS[0]}" />
           <text
             x={w.at.x}
             y={w.at.y}
@@ -135,12 +139,8 @@
     height: var(--wheel);
   }
   .wedge {
-    fill: var(--surface-2);
     stroke: var(--gold);
     stroke-width: 1.5;
-  }
-  .wedge.alt {
-    fill: var(--felt-light);
   }
   .wedge-label {
     fill: var(--text);

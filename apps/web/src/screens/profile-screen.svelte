@@ -73,7 +73,8 @@
   .profile-cols {
     flex: 1;
     display: grid;
-    grid-template-columns: 260px 1fr;
+    grid-template-columns: 260px minmax(0, 360px);
+    justify-content: center;
     gap: var(--sp-4);
     align-content: center;
     min-height: 0;
@@ -83,7 +84,6 @@
     flex-direction: column;
     justify-content: center;
     gap: var(--sp-2);
-    max-width: 360px;
   }
   .form-saved {
     margin: 0;

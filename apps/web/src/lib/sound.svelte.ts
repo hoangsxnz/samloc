@@ -1,6 +1,6 @@
-export type SoundKey = 'shuffle' | 'play' | 'join' | 'turn' | 'win' | 'lose';
+export type SoundKey = 'shuffle' | 'play' | 'join' | 'turn' | 'win' | 'lose' | 'wheel';
 
-export const SOUND_KEYS: readonly SoundKey[] = ['shuffle', 'play', 'join', 'turn', 'win', 'lose'];
+export const SOUND_KEYS: readonly SoundKey[] = ['shuffle', 'play', 'join', 'turn', 'win', 'lose', 'wheel'];
 
 export const SOUND_FILES: Record<SoundKey, string> = {
   shuffle: '/sounds/shuffle.mp3',
@@ -9,6 +9,7 @@ export const SOUND_FILES: Record<SoundKey, string> = {
   turn: '/sounds/turn.mp3',
   win: '/sounds/win.mp3',
   lose: '/sounds/lose.mp3',
+  wheel: '/sounds/lucky-wheel.mp3',
 };
 
 const STORAGE_KEY = 'samloc.sound';
