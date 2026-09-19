@@ -2,6 +2,12 @@
 
 ## 2026-09-19
 
+### Sâm window, deal animation, session money badge
+- Every seat presses "Huỷ báo" or "Báo Sâm" after the deal (10 s countdown); the first card cannot be played until everyone has decided or the 15 s server deadline passes; a seat's choice shows as a badge on every client
+- Deal animation: a deck in the centre deals one face-down card at a time to each seat for the length of the shuffle clip; skipped under reduced motion and on a reload
+- Top bar shows the session money swing (`+$800`) instead of a lá count; the collapsed "Kết quả" chip sits left of the menu button instead of on top of it; the session board button is gone so the next leader's name is readable
+- Profile boxes centred as a pair; lucky wheel has eight distinct wedge colours and a 4.3 s spin sound
+
 ### Fixes from phone play-testing
 - Money reads `$10,000` (`$` prefix, en-US grouping) everywhere; deltas `+$500` / `−$500`; wheel wedge labels `1,000` … `10,000`
 - Sound unlocks from `pointerup` / `keydown` instead of a once-only `pointerdown`: a touch `pointerdown` never grants user activation, so the `AudioContext` stayed suspended on phones

@@ -19,10 +19,10 @@ Shared TypeScript module, zero dependencies, used by both server (DO) and client
 | `compare.ts` | `canBeat()` — determines if one combo beats another per house rules |
 | `deal.ts` | `dealCards()` — random 10-card deal and card pool utilities |
 | `instant-win.ts` | `checkInstantWin()` — ăn trắng (龍/tứ quý 2/same color/3 triples/5 pairs) at hand start |
-| `state.ts` | `RulesState` (turn order, hand state, player hands, phase) and player state shapes |
+| `state.ts` | `RulesState` (turn order, hand state, player hands, phase, `samDecisions`) and player state shapes |
 | `clone-state.ts` | Deep copy of `RulesState` (safety for rules mutations) |
 | `reducer-play.ts` | `applyPlayAction()` — core turn logic (beat/pass/trick end); mutual recursion with reducers. `applyTimeout()` auto-plays `lowestLegalMove()` for every seat and passes only when nothing beats the trick |
-| `reducer-sam.ts` | `applyDeclareSam()` — báo sâm (sam declaration) state transitions and settlement exclusivity |
+| `reducer-sam.ts` | `applyDeclareSam()` / `applyDeclineSam()` — one decision per seat; the sâm window closes when every seat has decided (or on the deadline `timeout`) |
 | `reducer-events.ts` | Event generation (báo 1, chặt 2, chặt chồng, đền bài) piped through play/sam/settle |
 | `settle.ts` | `settle()` — hand settlement: ăn trắng / báo sâm / card count / thối 2 / cóng / chặt transfers; includes `assertZeroSum()` safety check; `thoi2Counts()` reports the per-seat thối 2 breakdown for the hand-end announcement |
 
@@ -61,8 +61,8 @@ Cloudflare Workers (Hono) + Durable Object + D1. One RoomDO instance per active 
 |---|---|
 | `room-do.ts` | RoomDO class: WebSocket hibernation API, snapshot routing, rate limiting (10 msg/s, burst 20); `emojiAllowed()` cooldown tracking (1500ms per-seat, in-memory Map) and `broadcastEmoji()` |
 | `room-do-store.ts` | Typed SQLite wrappers: schema creation, room/seat read-write (only place that writes SQL, fully parameterised) |
-| `room-do-actions.ts` | `handleMessage()` dispatcher: join/ready/settings/start/nextHand/leave/play/pass/declareSam/emoji (with 1500ms per-seat cooldown) |
-| `room-do-hand.ts` | Hand lifecycle: `beginHand()` (deal), `applyGameAction()` (play validation), `endHand()` (settlement, broadcasts one `thoi2` event per paying seat), `onAlarm()` (turn timeout), `closeRoom()` (cleanup), `armIdleClose()` (60s timeout after hand ends with no sockets) |
+| `room-do-actions.ts` | `handleMessage()` dispatcher: join/ready/settings/start/nextHand/leave/play/pass/declareSam/declineSam/emoji (with 1500ms per-seat cooldown) |
+| `room-do-hand.ts` | Hand lifecycle: `beginHand()` (deal, arms the 15 s sâm-window deadline), `applyGameAction()` (play validation), `endHand()` (settlement, broadcasts one `thoi2` event per paying seat), `onAlarm()` (turn timeout), `closeRoom()` (cleanup), `armIdleClose()` (60s timeout after hand ends with no sockets) |
 | `room-do-view.ts` | `buildView()` — per-socket snapshot with opponent hands hidden (`SeatView.money` = `budget_base` + `total_la` × stake); `buildHandResult()` — settlement display with `deltaMoney` / `moneyAfter` |
 | `room-do-trick.ts` | `TrickLog` (`{ entries, closed }`), `parseTrick()` (tolerates the legacy bare-array shape), `nextTrick()` — a finished trick stays on the table until the next lead, entry cards stored ascending |
 | `budget.ts` | `STARTING_BUDGET` + `budgetFor()` — D1 money balance = 10 000 + Σ hand results × stake + Σ `coin_grants.amount`; shared by the auth, profile and reward routes and the WS upgrade |
@@ -119,12 +119,12 @@ Svelte 5 + Vite, landscape-only responsive design (844×390 design reference, sc
 | `lib/router.svelte.ts` | Hash router: `route` state, `go(path)`; screens `login`, `home`, `profile`, `lobby`, `room`, `table` |
 | `lib/api.ts` | Fetch wrapper `req<T>`, named methods (register/login/logout/me/recentSessions/createRoom/findRoom/updateProfile/uploadAvatar/rewards/checkin/spin); `avatarUrl()` |
 | `lib/ws-client.svelte.ts` | WebSocket wrapper: `connected` state, `send()` with JSON stringify, auto-reconnect on close; `onEmoji` callback for emoji frames |
-| `lib/room.svelte.ts` | `RoomStore` singleton: `view`, `ws`, `lastError`, `reactions` (ephemeral, 1600ms TTL, cap 3/seat); plays `soundCuesFor(prev, next)` on every snapshot after the first; methods `join()`/`ready()`/`settings()`/`start()`/`play()`/`pass()`/`declareSam()`/`nextHand()`/`leave()`/`sendEmoji()`; `reactionsFor(seat)` helper |
+| `lib/room.svelte.ts` | `RoomStore` singleton: `view`, `ws`, `lastError`, `reactions` (ephemeral, 1600ms TTL, cap 3/seat); plays `soundCuesFor(prev, next)` on every snapshot after the first and stamps `handStartedAt` on the deal; methods `join()`/`ready()`/`settings()`/`start()`/`play()`/`pass()`/`declareSam()`/`declineSam()`/`nextHand()`/`leave()`/`sendEmoji()`; `reactionsFor(seat)` helper |
 | `lib/orientation.svelte.ts` | Landscape-lock detection and request on first pointer event |
 | `lib/table-layout.ts` | Seat/card positioning math: `fanLayout()` (flat row of left offsets, no arc), `tableScale()`, opponent slots (4 players: left / top-centre / right); exports `Point`, `CENTRE_POINT`, `FAN_ORIGIN`, `slotOrigin()` with updated `FAN_TRACK_LEFT` 236 |
 | `lib/trick-scatter.ts` | `scatterFor(seat, cards)` — FNV-1a hashed offset/rotation inside a 120×40 box so every client places a combo identically |
-| `lib/sound.svelte.ts` | `sound` singleton: Web Audio player for the six cues (`/sounds/<key>.mp3`), unlocked from `pointerup`/`keydown` (activation-granting on touch), retried until the context is running, `enabled` persisted in `localStorage` `samloc.sound`; a missing file leaves that cue silent |
-| `lib/sound-cues.ts` | `soundCuesFor(prev, next)` — pure snapshot diff → `shuffle` / `play` / `join` / `turn` / `win` / `lose` |
+| `lib/sound.svelte.ts` | `sound` singleton: Web Audio player for the seven cues (`/sounds/<key>.mp3`), unlocked from `pointerup`/`keydown` (activation-granting on touch), retried until the context is running, `enabled` persisted in `localStorage` `samloc.sound`; a missing file leaves that cue silent |
+| `lib/sound-cues.ts` | `soundCuesFor(prev, next)` — pure snapshot diff → `shuffle` / `play` / `join` / `turn` (fires when the sâm window closes, not at the deal) / `win` / `lose` |
 | `lib/avatar-resize.ts` | `resizeAvatar(file)` — bitmap decode, centre crop, 128×128 JPEG ≤ 64 KB |
 | `lib/wheel.ts` | SVG wedge geometry (`segmentPath`, `labelPosition`) and `rotationFor()` (≥ 5 turns, lands the server-chosen wedge under the pointer) |
 | `lib/card-view.ts` | Card rendering helpers: suit glyphs, rank labels, `comboLabel()` (renders a low straight as A-2-3) |
@@ -151,15 +151,16 @@ Reusable UI primitives:
 - `checkin-card.svelte` — daily check-in panel; 409 also flips to the done state
 - `wheel-modal.svelte` — SVG lucky wheel (8 wedges, gold pointer), spins 4 s to the server's segment, 4.3 s fallback if `transitionend` is missed, instant under reduced motion
 - `profile-avatar-picker.svelte` — file input + `resizeAvatar` + upload, busy and error states
-- `table-top-bar.svelte` — game table header: connection dot, room code, hand number, menu button
+- `table-top-bar.svelte` — game table header: connection dot, room code, hand number, session money swing chip (`totalLa × stakePerLa`), "Kết quả" chip while the result is collapsed, menu button
 - `table-menu-sheet.svelte` — game table ≡ menu: felt colour swatches, "Âm thanh: Bật/Tắt" toggle, "Rời phòng" with warning on leave-during-play
-- `action-bar.svelte` — bottom-right: "Xếp bài" + "Bỏ lượt" + "Đánh" buttons, "Báo Sâm" pill
+- `action-bar.svelte` — bottom-right: "Xếp bài" + "Bỏ lượt" + "Đánh" buttons; during the sâm window a "Báo sâm? Ns" countdown with "Huỷ báo" and the "Báo Sâm" pill
 - `hand-fan.svelte` — flat 10-card row with tap-to-select, lift on select, gold outline on playable cards
 - `centre-stack.svelte` — trick display: each combo rests on its hashed scatter spot (newest on top, older rows fade); newer tricks fade in over 260ms
-- `opponent-seat.svelte` — 40px avatar (countdown digits replace the photo/initial on the active seat) with an 18px red Báo 1 badge, name, 28×38px card-back count, money, 48px TimerRing arc overlay, passed/disconnected states, emoji reactions
+- `opponent-seat.svelte` — 40px avatar (countdown digits replace the photo/initial on the active seat) with an 18px red Báo 1 badge, name, 28×38px card-back count, money, 48px TimerRing arc overlay, passed/disconnected states, "Báo Sâm" / "Huỷ báo" badge inside the sâm window, emoji reactions
 - `me-chip.svelte` — bottom-left: 40px avatar (countdown digits replace the initial on my turn), turn label, money or invalidReason/đền bài warning, 48px TimerRing arc overlay, emoji reactions rising to the right of the chip
 - `settings-edit-sheet.svelte` — modal for host to adjust room settings during waiting
 - `card-flight.svelte` — fly-to-centre play animation (260ms, lands on the combo's scatter spot, suppressed under prefers-reduced-motion)
+- `deck-stack.svelte` / `deal-flight.svelte` — face-down pile in the centre and one card flying out per tick during the 4.6 s deal animation
 - `emoji-bar.svelte` — 8-emoji reaction picker (top 248/left 40), closes on outside pointerdown
 - `emoji-bubble.svelte` — emoji reaction bubble, rises and fades over 1600ms above a seat
 
@@ -176,9 +177,10 @@ Reusable UI primitives:
 | `waiting-screen.svelte` | Pre-game: room code (shareable), seat list, ready toggle (or "Sẵn sàng/Chưa"), host-only start button, leave with warning |
 | `table/table-screen.svelte` | Game table root: viewport scale, route guards, overlays, and the 1.8 s result-modal delay (tap anywhere to skip) |
 | `table/table-surface.svelte` | Everything inside `.table-root`: seats, centre stack, flight, me-chip, emoji bar, hand fan, action bar or the "Bạn sẽ vào ván sau" spectator banner |
-| `table/table-logic.svelte.ts` | Turn logic: `combo`/`currentCombo`, `canPlay`, `denWarn`, `moves`/`playableIds` (hints), combo-seeding `toggle()`, `sortMode`, timer countdown, `flight` state for play animation (last-trick-key driven, no replay on reconnect) |
+| `table/table-logic.svelte.ts` | Turn logic: `combo`/`currentCombo`, `canPlay`, `denWarn`, `moves`/`playableIds` (hints), combo-seeding `toggle()`, `sortMode`, timer countdown, `inSamWindow` / `showSamDecision` / `samRemain` (10 s cap), `deal` (`DealSchedule`), `flight` state for play animation (last-trick-key driven, no replay on reconnect) |
+| `table/deal-schedule.svelte.ts` | `DealSchedule`: `dealing`, `dealt`, `currentSeat`, `dealtFor(seat)` — 4.6 s tick schedule started from `room.handStartedAt`; the fan and opponent counts are sliced from the real snapshot |
 | `table/table-tags.svelte.ts` | `TagQueue`: floating per-seat event tags (deduped, capped 3/seat, 1.6 s TTL) and the aria-live announcement; `bao1` is aria-live only (the avatar badge is the visual) |
-| `table/hand-result-modal.svelte` | Post-hand result: `ResultHead`, auto-fit grid of players + cards/money, session board button, single-line footer with "Rời phòng" (everyone) and "Ván tiếp" (host only) |
+| `table/hand-result-modal.svelte` | Post-hand result: `ResultHead`, auto-fit grid of players + cards/money, single-line footer with the next leader, "Rời phòng" (everyone) and "Ván tiếp" (host only); a guest tapping the scrim collapses it into the top-bar chip |
 | `table/result-head.svelte` | Title / headline, winner pill with avatar, and "Mừng cậu chủ thắng lớn 💕" when I won |
 | `table/result-row.svelte` | Compact result row: avatar/name (+ Cóng), money delta, remaining cards, money after the hand |
 
@@ -216,7 +218,7 @@ Browser (WsClient → room.svelte.ts → components)
 
 ```typescript
 { seq: number } & (
-  | { type: 'join' | 'start' | 'declareSam' | 'pass' | 'leave' | 'nextHand' }
+  | { type: 'join' | 'start' | 'declareSam' | 'declineSam' | 'pass' | 'leave' | 'nextHand' }
   | { type: 'ready'; value: boolean }
   | { type: 'settings'; settings: RoomSettings }
   | { type: 'play'; cards: string[] }
@@ -249,11 +251,13 @@ Browser (WsClient → room.svelte.ts → components)
 
 4. **start** — Host sends `start`. Compacts seat numbers to 0..n-1. Calls `beginHand()` → rules engine deals cards → status='playing' → sends GameEvent (deal) + snapshot. If the deal is an ăn trắng instant win, immediately `endHand()` and status='hand-end'.
 
-5. **play/pass/declareSam** — During playing, `applyGameAction()` validates move against current turn and rules, mutates `RulesState`, broadcasts GameEvent (play/trick-end/sam-fail/etc.), snapshots all. On trick end, turn passes to next player or leads next trick. When hand is won (one player out of cards), calls `endHand()` → `settle()` → stores `result_json` in DO SQLite → writes one `hand_results` row per player to D1 → status='hand-end'.
+5. **declareSam/declineSam** — Inside the 15 s sâm window every seat decides once; the window closes on the last decision or when the alarm's `timeout` fires, and only then does the turn timer start.
 
-6. **nextHand** — Host sends `nextHand` after reviewing results. Calls `beginHand()` again, resets seats' `ready=0`.
+6. **play/pass** — During playing, `applyGameAction()` validates move against current turn and rules, mutates `RulesState`, broadcasts GameEvent (play/trick-end/sam-fail/etc.), snapshots all. On trick end, turn passes to next player or leads next trick. When hand is won (one player out of cards), calls `endHand()` → `settle()` → stores `result_json` in DO SQLite → writes one `hand_results` row per player to D1 → status='hand-end'.
 
-7. **leave** — Sender is marked `connected=0`. If in waiting/hand-end, seat is removed via `removeDisconnectedSeats()` and seats are compacted (resets to 0..n-1). If in playing, seat stays until hand ends. If all seats disconnect mid-hand, `onAlarm()` eventually closes the room after the hand completes and idles for 60s.
+7. **nextHand** — Host sends `nextHand` after reviewing results. Calls `beginHand()` again, resets seats' `ready=0`.
+
+8. **leave** — Sender is marked `connected=0`. If in waiting/hand-end, seat is removed via `removeDisconnectedSeats()` and seats are compacted (resets to 0..n-1). If in playing, seat stays until hand ends. If all seats disconnect mid-hand, `onAlarm()` eventually closes the room after the hand completes and idles for 60s.
 
 8. **idle-close** — After a hand ends, `armIdleClose()` schedules a 60s timeout. If no socket activity fires, the turn alarm, `onAlarm()` at deadline runs `closeRoom()` → deletes all DO storage → room becomes inaccessible. Users can then create a new room or rejoin if the room session is still open in D1 (e.g. within the host's session list).
 
