@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { HandResult, SeatView } from '@samloc/worker/ws-types';
   import AppButton from '../../components/app-button.svelte';
-  import { formatMoney } from '../../lib/format-money';
   import { room } from '../../lib/room.svelte';
   import ResultHead from './result-head.svelte';
   import ResultRow from './result-row.svelte';
@@ -11,60 +10,43 @@
     seats: SeatView[];
     youSeat: number;
     youAreHost: boolean;
+    oncollapse: () => void;
   }
 
-  let { result, seats, youSeat, youAreHost }: Props = $props();
-
-  let collapsed = $state(false);
-  let showSessionBoard = $state(false);
+  let { result, seats, youSeat, youAreHost, oncollapse }: Props = $props();
 
   const winner = $derived(seats.find((s) => s.seat === result.winnerSeat) ?? null);
   const nextLeadName = $derived(seats.find((s) => s.seat === result.nextLeadSeat)?.name ?? '');
 
   function tapScrim(): void {
-    if (!youAreHost) collapsed = true;
+    if (!youAreHost) oncollapse();
   }
 </script>
 
-{#if collapsed}
-  <button type="button" class="result-chip" onclick={() => (collapsed = false)}>Kết quả</button>
-{:else}
-  <div class="result-overlay">
-    <button type="button" class="scrim-backdrop" aria-label="Xem lại bàn chơi" onclick={tapScrim}></button>
-    <div class="panel result-modal" role="dialog" aria-modal="true" aria-labelledby="result-title">
-      <ResultHead {result} {winner} youWon={result.winnerSeat === youSeat} />
+<div class="result-overlay">
+  <button type="button" class="scrim-backdrop" aria-label="Xem lại bàn chơi" onclick={tapScrim}></button>
+  <div class="panel result-modal" role="dialog" aria-modal="true" aria-labelledby="result-title">
+    <ResultHead {result} {winner} youWon={result.winnerSeat === youSeat} />
 
-      <div class="result-grid">
-        {#each result.rows as row (row.seat)}
-          {@const seat = seats.find((s) => s.seat === row.seat)}
-          <ResultRow {row} isWinner={row.seat === result.winnerSeat} userId={seat?.userId ?? ''} avatarVer={seat?.avatarVer ?? null} />
-        {/each}
-      </div>
-
-      {#if showSessionBoard}
-        <div class="session-board">
-          {#each seats as seat (seat.seat)}
-            <span>{seat.name}: {formatMoney(seat.money)}</span>
-          {/each}
-        </div>
-      {/if}
-
-      <footer class="result-foot">
-        <AppButton variant="ghost" onclick={() => (showSessionBoard = !showSessionBoard)}>
-          Bảng điểm phiên
-        </AppButton>
-        <p class="result-status">
-          <span>{nextLeadName} cầm cái ván sau</span>
-          {#if !youAreHost}<span>Đang chờ chủ phòng bắt đầu ván mới…</span>{/if}
-        </p>
-        <AppButton variant="danger" onclick={() => room.leave()}>Rời phòng</AppButton>
-        {#if youAreHost}
-          <AppButton onclick={() => room.nextHand()}>Ván tiếp</AppButton>
-        {/if}
-      </footer>
+    <div class="result-grid">
+      {#each result.rows as row (row.seat)}
+        {@const seat = seats.find((s) => s.seat === row.seat)}
+        <ResultRow {row} isWinner={row.seat === result.winnerSeat} userId={seat?.userId ?? ''} avatarVer={seat?.avatarVer ?? null} />
+      {/each}
     </div>
+
+    <footer class="result-foot">
+      <p class="result-status">
+        <span>{nextLeadName} cầm cái ván sau</span>
+        {#if !youAreHost}<span>Đang chờ chủ phòng bắt đầu ván mới…</span>{/if}
+      </p>
+      <AppButton variant="danger" onclick={() => room.leave()}>Rời phòng</AppButton>
+      {#if youAreHost}
+        <AppButton onclick={() => room.nextHand()}>Ván tiếp</AppButton>
+      {/if}
+    </footer>
   </div>
-{/if}
+</div>
 
 <style>
   .result-overlay {
@@ -110,13 +92,6 @@
     min-height: 0;
     overflow-y: auto;
   }
-  .session-board {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sp-2);
-    font-size: var(--fs-xs);
-    color: var(--text-muted);
-  }
   .result-foot {
     display: flex;
     align-items: center;
@@ -147,20 +122,5 @@
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-  .result-chip {
-    position: fixed;
-    top: max(8px, env(safe-area-inset-top));
-    right: max(40px, env(safe-area-inset-right));
-    z-index: 50;
-    height: 32px;
-    padding: 0 14px;
-    border-radius: var(--r-full);
-    background: var(--gold);
-    color: var(--on-gold);
-    font-weight: 700;
-    font-size: 13px;
-    border: 0;
-    cursor: pointer;
   }
 </style>

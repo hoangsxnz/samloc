@@ -21,6 +21,7 @@
   /** The result modal waits so the winning combo is actually seen; a tap skips the wait. */
   const RESULT_DELAY_MS = 1800;
   let resultVisible = $state(false);
+  let resultCollapsed = $state(false);
 
   function declareSam(): void {
     room.declareSam();
@@ -39,6 +40,7 @@
   $effect(() => {
     if (room.view?.status !== 'hand-end' || !room.view.result) {
       resultVisible = false;
+      resultCollapsed = false;
       return;
     }
     const timer = setTimeout(() => (resultVisible = true), RESULT_DELAY_MS);
@@ -60,13 +62,26 @@
 
 {#if view}
   <div class="table-wrapper">
-    <TableSurface {view} {logic} {scale} onmenu={() => (menuOpen = true)} onbaosam={() => (confirmingSam = true)} />
+    <TableSurface
+      {view}
+      {logic}
+      {scale}
+      onmenu={() => (menuOpen = true)}
+      onbaosam={() => (confirmingSam = true)}
+      onshowresult={resultCollapsed ? () => (resultCollapsed = false) : null}
+    />
   </div>
 
   {#if view.status === 'hand-end' && view.result}
-    {#if resultVisible}
-      <HandResultModal result={view.result} seats={view.seats} youSeat={view.youSeat} youAreHost={view.youAreHost} />
-    {:else}
+    {#if resultVisible && !resultCollapsed}
+      <HandResultModal
+        result={view.result}
+        seats={view.seats}
+        youSeat={view.youSeat}
+        youAreHost={view.youAreHost}
+        oncollapse={() => (resultCollapsed = true)}
+      />
+    {:else if !resultVisible}
       <button type="button" class="result-skip" aria-label="Xem kết quả" onclick={() => (resultVisible = true)}
       ></button>
     {/if}

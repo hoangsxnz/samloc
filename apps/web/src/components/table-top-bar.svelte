@@ -1,15 +1,20 @@
 <script lang="ts">
   import type { RoomView } from '@samloc/worker/ws-types';
+  import { formatMoneyDelta } from '../lib/format-money';
 
   interface Props {
     view: RoomView;
     connected: boolean;
     onmenu: () => void;
+    /** Set while the hand result is collapsed: the "Kết quả" chip reopens it. */
+    onshowresult: (() => void) | null;
   }
 
-  let { view, connected, onmenu }: Props = $props();
+  let { view, connected, onmenu, onshowresult }: Props = $props();
 
   const mySeat = $derived(view.seats.find((s) => s.seat === view.youSeat) ?? null);
+  /** Session swing in money: the same `totalLa × stakePerLa` the server uses for the balance. */
+  const swing = $derived((mySeat?.totalLa ?? 0) * view.settings.stakePerLa);
 </script>
 
 <header class="table-top">
@@ -17,7 +22,10 @@
   <span class="room-code">{view.code}</span>
   <span class="hand-no">· Ván {view.handNo}</span>
   {#if mySeat}
-    <span class="chip session-chip">{mySeat.totalLa >= 0 ? '+' : ''}{mySeat.totalLa}</span>
+    <span class="chip session-chip" class:neg={swing < 0}>{formatMoneyDelta(swing)}</span>
+  {/if}
+  {#if onshowresult}
+    <button type="button" class="result-chip" onclick={onshowresult}>Kết quả</button>
   {/if}
   <button type="button" class="menu-btn" aria-label="Menu bàn chơi" onclick={onmenu}>≡</button>
 </header>
@@ -52,6 +60,21 @@
   }
   .session-chip {
     margin-left: auto;
+    color: var(--success);
+  }
+  .session-chip.neg {
+    color: var(--danger);
+  }
+  .result-chip {
+    height: 32px;
+    padding: 0 14px;
+    border-radius: var(--r-full);
+    background: var(--gold);
+    color: var(--on-gold);
+    font-weight: 700;
+    font-size: 13px;
+    border: 0;
+    cursor: pointer;
   }
   .menu-btn {
     width: 44px;

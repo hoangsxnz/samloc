@@ -28,9 +28,10 @@
     scale: number;
     onmenu: () => void;
     onbaosam: () => void;
+    onshowresult: (() => void) | null;
   }
 
-  let { view, logic, scale, onmenu, onbaosam }: Props = $props();
+  let { view, logic, scale, onmenu, onbaosam, onshowresult }: Props = $props();
 
   const mySeat = $derived(view.seats.find((s) => s.seat === view.youSeat) ?? null);
 
@@ -61,7 +62,7 @@
   class="table-root"
   style="transform: scale({scale}); width: {TABLE_WIDTH}px; height: {TABLE_HEIGHT}px; {tableTheme.vars}"
 >
-  <TableTopBar {view} connected={room.ws.connected} {onmenu} />
+  <TableTopBar {view} connected={room.ws.connected} {onmenu} {onshowresult} />
 
   {#each opponentSeats as opp (opp.seatView?.seat)}
     {#if opp.seatView}
