@@ -19,6 +19,9 @@ export interface RoomHost {
   snapshotAll(ack: number, origin?: WebSocket): void;
 }
 
+/** Deal animation (~5 s) plus 10 s for every seat to press Báo Sâm or Huỷ báo. */
+const SAM_WINDOW_SECONDS = 15;
+
 export function parseState(room: RoomRow): RulesState | null {
   return room.state_json ? (JSON.parse(room.state_json) as RulesState) : null;
 }
@@ -51,7 +54,7 @@ export function beginHand(host: RoomHost, ack: number, origin?: WebSocket): void
     endHand(host, state);
     return;
   }
-  armAlarm(host, room.turn_seconds);
+  armAlarm(host, SAM_WINDOW_SECONDS);
   host.snapshotAll(ack, origin);
 }
 
@@ -79,7 +82,8 @@ function commitStep(host: RoomHost, room: RoomRow, res: StepResult, ack: number,
     endHand(host, res.state);
     return;
   }
-  armAlarm(host, room.turn_seconds);
+  // A decision inside the window keeps the window deadline; the step that closes it arms the turn timer.
+  if (res.state.phase !== 'sam-window') armAlarm(host, room.turn_seconds);
   host.snapshotAll(ack, origin);
 }
 

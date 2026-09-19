@@ -57,6 +57,7 @@ export function handleMessage(host: RoomHost, ws: WebSocket, who: Who, msg: Clie
     case 'leave':
       return handleLeave(host, ws, room, mine, msg.seq);
     case 'declareSam':
+    case 'declineSam':
     case 'pass':
       if (!mine) return fail(host, ws, msg.seq, 'Bạn chưa vào phòng');
       return applyGameAction(host, ws, msg.seq, { type: msg.type, seat: mine.seat });

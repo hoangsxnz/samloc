@@ -1,4 +1,4 @@
-import { makeState, pass, play } from './state-test-helpers';
+import { closeWindow, makeState, pass, play } from './state-test-helpers';
 
 const Q3 = ['3S', '3C', '3D', '3H'];
 const Q5 = ['5S', '5C', '5D', '5H'];
@@ -106,7 +106,7 @@ describe('đền bài', () => {
 
   it('no chặt transfer or event during a báo sâm hand', () => {
     let s = makeState([['2S', '9S'], [...Q3, 'KS']], { phase: 'sam-window', samSeat: 0 });
-    s = play(s, 0, ['2S']).state;
+    s = play(closeWindow(s), 0, ['2S']).state;
     const res = play(s, 1, Q3);
     expect(res.events.some((e) => e.type === 'chat2')).toBe(false);
     expect(res.state.chatChain).toEqual([]);

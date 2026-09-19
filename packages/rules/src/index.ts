@@ -24,6 +24,7 @@ export { type InstantWinKind, hasInstantWin } from './instant-win';
 export { type Deal, mulberry32, shuffle, createDeal, lowestCardSeat } from './deal';
 export {
   type Phase,
+  type SamChoice,
   type PlayerState,
   type TrickState,
   type Transfer,

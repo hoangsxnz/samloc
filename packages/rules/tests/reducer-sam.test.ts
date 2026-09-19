@@ -1,5 +1,5 @@
-import { applyAction, buildHand, createHand } from '../src/state';
-import { makeState, play, step } from './state-test-helpers';
+import { applyAction, buildHand, createHand, type RulesState } from '../src/state';
+import { closeWindow, makeState, play, step } from './state-test-helpers';
 
 const SAM_WINDOW = { phase: 'sam-window' as const };
 
@@ -14,7 +14,7 @@ describe('báo sâm', () => {
 
   it('declareSam is rejected after the first card is played', () => {
     let s = makeState([['3S', '9S'], ['4S', '4H']], SAM_WINDOW);
-    s = play(s, 0, ['3S']).state;
+    s = play(closeWindow(s), 0, ['3S']).state;
     expect(s.phase).toBe('playing');
     const res = applyAction(s, { type: 'declareSam', seat: 1 });
     expect(res.error).toBeTruthy();
@@ -43,7 +43,7 @@ describe('báo sâm', () => {
   it('sâm succeeds when the declarer empties their hand unbeaten', () => {
     let s = makeState([['3S', '9S'], ['2S']], SAM_WINDOW);
     s = step(s, { type: 'declareSam', seat: 1 }).state;
-    const res = play(s, 1, ['2S']);
+    const res = play(closeWindow(s), 1, ['2S']);
     expect(res.state.phase).toBe('ended');
     expect(res.state.samResult).toBe('success');
     expect(res.state.winnerSeat).toBe(1);
@@ -53,7 +53,7 @@ describe('báo sâm', () => {
   it('a non-declarer who times out auto-plays and blocks the sâm', () => {
     let s = makeState([['5S', '9S'], ['3S', '4S']], SAM_WINDOW);
     s = step(s, { type: 'declareSam', seat: 1 }).state;
-    s = play(s, 1, ['3S']).state;
+    s = play(closeWindow(s), 1, ['3S']).state;
     const res = step(s, { type: 'timeout', seat: 0 });
     expect(res.state.samResult).toBe('fail');
     expect(res.state.blockerSeat).toBe(0);
@@ -63,7 +63,7 @@ describe('báo sâm', () => {
   it('sâm fails the moment any play is beaten and the hand ends', () => {
     let s = makeState([['5S', '9S'], ['3S', '4S']], SAM_WINDOW);
     s = step(s, { type: 'declareSam', seat: 1 }).state;
-    s = play(s, 1, ['3S']).state;
+    s = play(closeWindow(s), 1, ['3S']).state;
     const res = play(s, 0, ['5S']);
     expect(res.state.phase).toBe('ended');
     expect(res.state.samResult).toBe('fail');
@@ -103,7 +103,7 @@ describe('báo sâm', () => {
   it('after a failed sâm the blocking seat leads the next hand', () => {
     let s = makeState([['5S', '9S'], ['3S', '4S'], ['6S', '7S']], SAM_WINDOW);
     s = step(s, { type: 'declareSam', seat: 1 }).state;
-    s = play(s, 1, ['3S']).state;
+    s = play(closeWindow(s), 1, ['3S']).state;
     s = play(s, 2, ['6S']).state;
     const nextLead = s.winnerSeat ?? s.blockerSeat;
     expect(nextLead).toBe(2);
@@ -114,5 +114,81 @@ describe('báo sâm', () => {
         return;
       }
     }
+  });
+
+  describe("window closes on every seat's decision or the deadline", () => {
+    const HANDS = [['3S', '9S'], ['4S', '4H'], ['5S', 'KS']];
+
+    it('play is rejected while the window is open', () => {
+      const s = makeState(HANDS, SAM_WINDOW);
+      const res = applyAction(s, { type: 'play', seat: 0, cards: ['3S'] });
+      expect(res.error).toBe('Chờ mọi người quyết định báo sâm');
+      expect(res.state).toBe(s);
+    });
+
+    it('declineSam from every seat closes the window with the lead unchanged', () => {
+      let s = makeState(HANDS, SAM_WINDOW);
+      s = step(s, { type: 'declineSam', seat: 1 }).state;
+      expect(s.phase).toBe('sam-window');
+      s = step(s, { type: 'declineSam', seat: 0 }).state;
+      const res = step(s, { type: 'declineSam', seat: 2 });
+      expect(res.events).toEqual([]);
+      expect(res.state.phase).toBe('playing');
+      expect(res.state.turnSeat).toBe(0);
+      expect(res.state.samDecisions).toEqual([
+        { seat: 1, choice: 'decline' },
+        { seat: 0, choice: 'decline' },
+        { seat: 2, choice: 'decline' },
+      ]);
+    });
+
+    it('a declaration plus the other declines closes the window on the declarer', () => {
+      let s = makeState(HANDS, SAM_WINDOW);
+      s = step(s, { type: 'declareSam', seat: 2 }).state;
+      s = step(s, { type: 'declineSam', seat: 0 }).state;
+      expect(s.phase).toBe('sam-window');
+      s = step(s, { type: 'declineSam', seat: 1 }).state;
+      expect(s.phase).toBe('playing');
+      expect(s.samSeat).toBe(2);
+      expect(s.turnSeat).toBe(2);
+    });
+
+    it('a decision is final: no declare after decline, no second decline, none after the window', () => {
+      let s = makeState(HANDS, SAM_WINDOW);
+      s = step(s, { type: 'declineSam', seat: 1 }).state;
+      expect(applyAction(s, { type: 'declareSam', seat: 1 }).error).toBe('Bạn đã quyết định rồi');
+      expect(applyAction(s, { type: 'declineSam', seat: 1 }).error).toBe('Bạn đã quyết định rồi');
+      const playing = closeWindow(s);
+      expect(applyAction(playing, { type: 'declineSam', seat: 0 }).error).toBeTruthy();
+      expect(applyAction(playing, { type: 'declineSam', seat: 0 }).state).toBe(playing);
+    });
+
+    it('the deadline timeout closes the window without playing a card', () => {
+      const s = makeState(HANDS, SAM_WINDOW);
+      const res = step(s, { type: 'timeout', seat: s.turnSeat });
+      expect(res.events).toEqual([]);
+      expect(res.state.phase).toBe('playing');
+      expect(res.state.turnSeat).toBe(0);
+      expect(res.state.trick.combo).toBeNull();
+      expect(res.state.players.map((p) => p.hand.length)).toEqual([2, 2, 2]);
+    });
+
+    it('an overridden declarer has spent its decision', () => {
+      let s = makeState(HANDS, SAM_WINDOW);
+      s = step(s, { type: 'declareSam', seat: 2 }).state;
+      s = step(s, { type: 'declareSam', seat: 1 }).state;
+      expect(s.samSeat).toBe(1);
+      expect(applyAction(s, { type: 'declineSam', seat: 2 }).error).toBe('Bạn đã quyết định rồi');
+      const res = step(s, { type: 'declineSam', seat: 0 });
+      expect(res.state.phase).toBe('playing');
+      expect(res.state.turnSeat).toBe(1);
+    });
+
+    it('a state dealt before samDecisions existed still accepts decisions', () => {
+      const legacy = makeState(HANDS, SAM_WINDOW) as Partial<RulesState>;
+      delete legacy.samDecisions;
+      const res = step(legacy as RulesState, { type: 'declineSam', seat: 0 });
+      expect(res.state.samDecisions).toEqual([{ seat: 0, choice: 'decline' }]);
+    });
   });
 });

@@ -66,7 +66,8 @@ describe('buildView', () => {
   });
 
   it('marks the trick closed while its cards are still on the table', () => {
-    const led = applyAction(state, { type: 'play', seat: 0, cards: ['3S'] }).state;
+    const open = applyAction(state, { type: 'timeout', seat: 0 }).state;
+    const led = applyAction(open, { type: 'play', seat: 0, cards: ['3S'] }).state;
     const trick = [{ seat: 0, cards: ['3S'] }];
     expect(buildView(room, seats, led, null, trick, 'u1').trickClosed).toBe(false);
     const passed = applyAction(applyAction(led, { type: 'pass', seat: 1 }).state, { type: 'pass', seat: 2 }).state;
@@ -77,6 +78,16 @@ describe('buildView', () => {
 
   it('shows money as the seat budget plus session lá at the room stake', () => {
     expect(view.seats.map((s) => s.money)).toEqual([10_500, 8_500, 12_000]);
+  });
+
+  it('carries each seat\'s sâm decision and drops canDeclareSam once it has decided', () => {
+    expect(view.seats.map((s) => s.samChoice)).toEqual([null, null, null]);
+    const declared = applyAction(state, { type: 'declareSam', seat: 2 }).state;
+    const decided = applyAction(declared, { type: 'declineSam', seat: 1 }).state;
+    const after = buildView(room, seats, decided, null, [], 'u1');
+    expect(after.seats.map((s) => s.samChoice)).toEqual([null, 'decline', 'declare']);
+    expect(after.canDeclareSam).toBe(false);
+    expect(buildView(room, seats, decided, null, [], 'u0').canDeclareSam).toBe(true);
   });
 
   it('carries each seat\'s avatar version', () => {

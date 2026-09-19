@@ -12,6 +12,7 @@ export function makeState(hands: CardId[][], overrides: Partial<RulesState> = {}
     trick: { combo: null, cards: [], ownerSeat: lead },
     samSeat: null,
     samResult: null,
+    samDecisions: [],
     instantWin: null,
     bao1Seats: [],
     chatChain: [],
@@ -37,6 +38,11 @@ export function play(state: RulesState, seat: number, cards: CardId[]): StepResu
 
 export function pass(state: RulesState, seat: number): StepResult {
   return step(state, { type: 'pass', seat });
+}
+
+/** Lets the sâm window deadline fire so the first card can be played. */
+export function closeWindow(state: RulesState): RulesState {
+  return step(state, { type: 'timeout', seat: state.turnSeat }).state;
 }
 
 export function deepFreeze<T>(value: T): T {

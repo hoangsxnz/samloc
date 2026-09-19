@@ -1,7 +1,7 @@
-import type { GameEvent } from '@samloc/rules';
+import type { GameEvent, SamChoice } from '@samloc/rules';
 import type { EmojiKey } from './emoji';
 
-export type { GameEvent };
+export type { GameEvent, SamChoice };
 export type { EmojiKey };
 
 export interface RoomSettings {
@@ -12,7 +12,7 @@ export interface RoomSettings {
 
 /** Client → server. `seq` is echoed back as `ack` for request matching only. */
 export type ClientMsg = { seq: number } & (
-  | { type: 'join' | 'start' | 'declareSam' | 'pass' | 'nextHand' | 'leave' }
+  | { type: 'join' | 'start' | 'declareSam' | 'declineSam' | 'pass' | 'nextHand' | 'leave' }
   | { type: 'ready'; value: boolean }
   | { type: 'settings'; settings: RoomSettings }
   | { type: 'play'; cards: string[] }
@@ -30,7 +30,9 @@ export interface SeatView {
   cardCount: number;
   passed: boolean;
   bao1: boolean;
-  /** Session total in lá, used by the session board. */
+  /** This seat's sâm decision while the window is open; null until it presses. */
+  samChoice: SamChoice | null;
+  /** Session total in lá; the top bar shows it as money. */
   totalLa: number;
   /** Money balance in đồng: the seat's starting budget plus `totalLa` × `stakePerLa`. */
   money: number;

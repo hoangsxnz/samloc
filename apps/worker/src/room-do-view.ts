@@ -35,6 +35,8 @@ export function buildView(
   const host = hostSeat(seats);
   const you = seats.find((s) => s.user_id === forUserId);
   const youSeat = you?.seat ?? -1;
+  // Rooms dealt before this field existed carry a state without it.
+  const samDecisions = state?.samDecisions ?? [];
   const seatViews: SeatView[] = seats.map((s) => {
     const player = state?.players[s.seat];
     return {
@@ -47,6 +49,7 @@ export function buildView(
       cardCount: player?.hand.length ?? 0,
       passed: player?.passed ?? false,
       bao1: state?.bao1Seats.includes(s.seat) ?? false,
+      samChoice: samDecisions.find((d) => d.seat === s.seat)?.choice ?? null,
       totalLa: s.total_la,
       money: s.budget_base + s.total_la * room.stake_per_la,
       avatarVer: s.avatar_ver,
@@ -58,6 +61,7 @@ export function buildView(
     state.phase === 'sam-window' &&
     youSeat >= 0 &&
     state.players[youSeat] !== undefined &&
+    !samDecisions.some((d) => d.seat === youSeat) &&
     (state.samSeat === null || youSeat < state.samSeat);
   return {
     code: room.code,

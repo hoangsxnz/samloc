@@ -33,6 +33,7 @@ function endTrick(next: RulesState, events: GameEvent[]): void {
 
 export function applyPlay(state: RulesState, seat: number, cards: CardId[]): StepResult {
   if (state.phase === 'ended') return fail(state, 'Ván đã kết thúc');
+  if (state.phase === 'sam-window') return fail(state, 'Chờ mọi người quyết định báo sâm');
   if (seat !== state.turnSeat) return fail(state, 'Chưa đến lượt của bạn');
   const current = state.players[seat];
   if (!current) return fail(state, 'Chỗ ngồi không hợp lệ');
@@ -46,7 +47,6 @@ export function applyPlay(state: RulesState, seat: number, cards: CardId[]): Ste
   const next = cloneState(state);
   const events: GameEvent[] = [];
   const wasLead = state.trick.combo === null;
-  if (next.phase === 'sam-window') next.phase = 'playing';
 
   // A non-declarer can only ever play by beating the declarer, which ends the hand at once.
   if (next.samSeat !== null && seat !== next.samSeat) {
@@ -98,6 +98,12 @@ export function applyPass(state: RulesState, seat: number): StepResult {
  */
 export function applyTimeout(state: RulesState, seat: number): StepResult {
   if (state.phase === 'ended') return fail(state, 'Ván đã kết thúc');
+  // The window deadline closes it without playing: turnSeat is already the declarer or the lead.
+  if (state.phase === 'sam-window') {
+    const next = cloneState(state);
+    next.phase = 'playing';
+    return { state: next, events: [] };
+  }
   if (seat !== state.turnSeat) return fail(state, 'Chưa đến lượt của bạn');
   const player = state.players[seat];
   if (!player) return fail(state, 'Chỗ ngồi không hợp lệ');

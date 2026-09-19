@@ -1,7 +1,7 @@
 import { isEmojiKey } from './emoji';
 import type { ClientMsg } from './ws-types';
 
-const SIMPLE_TYPES = new Set(['join', 'start', 'declareSam', 'pass', 'nextHand', 'leave']);
+const SIMPLE_TYPES = new Set(['join', 'start', 'declareSam', 'declineSam', 'pass', 'nextHand', 'leave']);
 const MAX_CARDS = 10;
 const MAX_CARD_ID = 3;
 

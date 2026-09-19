@@ -3,9 +3,11 @@ import type { Combo } from './combos';
 import { createDeal } from './deal';
 import { hasInstantWin, type InstantWinKind } from './instant-win';
 import { applyPass, applyPlay, applyTimeout } from './reducer-play';
-import { applyDeclareSam } from './reducer-sam';
+import { applyDeclareSam, applyDeclineSam } from './reducer-sam';
 
 export type Phase = 'sam-window' | 'playing' | 'ended';
+
+export type SamChoice = 'declare' | 'decline';
 
 export interface PlayerState {
   /** 0..n-1 = deal order = clockwise. */
@@ -41,6 +43,8 @@ export interface RulesState {
   /** Báo sâm declarer. */
   samSeat: number | null;
   samResult: 'success' | 'fail' | null;
+  /** One entry per seat that pressed Báo Sâm or Huỷ báo; the window closes when every seat is here. */
+  samDecisions: { seat: number; choice: SamChoice }[];
   instantWin: { seat: number; kind: InstantWinKind } | null;
   /** Seats already announced at 1 card. */
   bao1Seats: number[];
@@ -58,7 +62,7 @@ export interface RulesState {
 
 export type Action =
   | { type: 'play'; seat: number; cards: CardId[] }
-  | { type: 'declareSam' | 'pass' | 'timeout'; seat: number };
+  | { type: 'declareSam' | 'declineSam' | 'pass' | 'timeout'; seat: number };
 
 export type GameEvent =
   | { type: 'anTrang'; seat: number; kind: InstantWinKind }
@@ -106,6 +110,7 @@ export function buildHand(
     trick: { combo: null, cards: [], ownerSeat: lead },
     samSeat: null,
     samResult: null,
+    samDecisions: [],
     instantWin: null,
     bao1Seats: [],
     chatChain: [],
@@ -139,5 +144,7 @@ export function applyAction(state: RulesState, action: Action): StepResult {
       return applyTimeout(state, action.seat);
     case 'declareSam':
       return applyDeclareSam(state, action.seat);
+    case 'declineSam':
+      return applyDeclineSam(state, action.seat);
   }
 }
