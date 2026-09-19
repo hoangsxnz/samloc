@@ -23,7 +23,7 @@ pnpm dev          # Vite + @cloudflare/vite-plugin: SPA, Worker, DO and D1 all i
 pnpm typecheck    # pnpm -r typecheck
 pnpm test         # pnpm -r test (vitest; rules + worker only)
 pnpm build        # vite build
-pnpm deploy       # build, then wrangler deploy
+pnpm run deploy   # build, then wrangler deploy (`run` is required: bare `pnpm deploy` is pnpm's own command)
 ```
 
 Run `pnpm typecheck && pnpm test` after changing code, before reporting the work done.

@@ -20,7 +20,7 @@ Deploy is a single Worker carrying the SPA assets, the Hono API, and the `RoomDO
 
 ## Deploy
 
-Run `pnpm deploy` from the repo root.
+Run `pnpm run deploy` from the repo root. The `run` is required: bare `pnpm deploy` invokes pnpm's built-in deploy command and fails with `ERR_PNPM_NOTHING_TO_DEPLOY`.
 
 This builds the web app first, which emits a generated Wrangler config inside the web build output at `samloc/wrangler.json`; the worker's deploy script targets that generated file rather than `apps/worker/wrangler.jsonc`. Never run `wrangler deploy` from `apps/worker` without building first — it will either fail on the missing config or ship stale assets.
 
